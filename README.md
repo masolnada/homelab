@@ -1,8 +1,8 @@
-# Homelab
+# 🏠 Homelab
 
 Docker Compose homelab running behind Caddy (reverse proxy) and Tailscale (VPN). Backups and media are stored on TrueNAS via SMB/CIFS.
 
-## Architecture
+## 🏗️ Architecture
 
 ```
                 Tailscale
@@ -11,18 +11,18 @@ Docker Compose homelab running behind Caddy (reverse proxy) and Tailscale (VPN).
                 (gateway)                   └── Navidrome
 ```
 
-- **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
-- **Security** — Vaultwarden with daily backup to TrueNAS
-- **Media** — Navidrome streaming from TrueNAS music share
+- 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
+- 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
+- 🎵 **Media** — Navidrome streaming from TrueNAS music share
 
-## Prerequisites
+## 📋 Prerequisites
 
 - A Proxmox VM running Linux (Debian/Ubuntu recommended)
 - A TrueNAS server with SMB shares configured
 - A Cloudflare account managing your domain's DNS
 - A Tailscale account
 
-## Setup
+## 🚀 Setup
 
 ### 1. Clone the repo
 
@@ -37,7 +37,7 @@ cd ~/homelab
 ./install.sh
 ```
 
-Log out and back in for the docker group to take effect.
+⚠️ Log out and back in for the docker group to take effect.
 
 ### 3. Authenticate Tailscale on the host
 
@@ -98,7 +98,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 
 This starts gateway, security, and media in order.
 
-### 8. Verify
+### 8. ✅ Verify
 
 ```bash
 # Check Caddy TLS certificates
@@ -111,7 +111,7 @@ docker exec tailscale-gateway tailscale status
 docker ps
 ```
 
-## TrueNAS Setup
+## 💾 TrueNAS Setup
 
 Before starting the security and media stacks, make sure your TrueNAS server has:
 
@@ -119,7 +119,7 @@ Before starting the security and media stacks, make sure your TrueNAS server has
 2. **Dedicated users** — a backup user (read/write) and a music user (read-only)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
 
-## Adding a New Service
+## ➕ Adding a New Service
 
 To expose a service running on a different Proxmox VM (e.g. `192.168.1.50:8080`), add a block to `gateway/Caddyfile`:
 
@@ -136,7 +136,7 @@ Then reload Caddy:
 docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
-## Backups
+## 🔄 Backups
 
 Vaultwarden is backed up daily at 03:00 AM to the TrueNAS SMB share. The backup sidecar:
 
@@ -144,7 +144,7 @@ Vaultwarden is backed up daily at 03:00 AM to the TrueNAS SMB share. The backup 
 - Retains 30 days of backups with automatic rotation
 - Stores backups as `vaultwarden-<timestamp>.tar.gz`
 
-## File Structure
+## 📁 File Structure
 
 ```
 ~/homelab/
