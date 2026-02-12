@@ -86,22 +86,17 @@ Edit each stack's `.env` file with your credentials:
 | `NAS_MUSIC_USER` | NAS user for music share |
 | `NAS_MUSIC_PASSWORD` | NAS password for music share |
 
-### 6. Create DNS records in Cloudflare
+### 6. DNS
 
-Add A or CNAME records pointing to your Tailscale IP (or local IP):
-
-- `vault.<DOMAIN>`
-- `music.<DOMAIN>`
+A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflare. This avoids double-hopping through the Cloudflare proxy, which causes issues with Android clients. No per-service DNS changes needed — all subdomains resolve automatically.
 
 ### 7. Start the stacks
 
-Start in order — gateway first since other services depend on the reverse proxy:
-
 ```bash
-cd ~/homelab/gateway  && docker compose up -d && cd ..
-cd ~/homelab/security && docker compose up -d && cd ..
-cd ~/homelab/media    && docker compose up -d && cd ..
+./start.sh
 ```
+
+This starts gateway, security, and media in order.
 
 ### 8. Verify
 
@@ -155,6 +150,7 @@ Vaultwarden is backed up daily at 03:00 AM to the TrueNAS SMB share. The backup 
 ~/homelab/
 ├── install.sh              # Installs Docker and Tailscale
 ├── init.sh                 # Creates network, dirs, and .env files
+├── start.sh                # Starts all stacks in order
 ├── .env.template           # Master env template
 ├── gateway/
 │   ├── docker-compose.yml  # Tailscale + Caddy
