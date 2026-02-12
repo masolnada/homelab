@@ -1,11 +1,28 @@
 services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale-gateway
+    restart: unless-stopped
+    hostname: homelab-gateway
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      - proxy_net
+
   caddy:
     build: .
     container_name: caddy
     restart: unless-stopped
-    ports:
-      - "443:443"
-      - "443:443/udp"
+    network_mode: service:tailscale
+    depends_on:
+      - tailscale
     environment:
       - DOMAIN=${DOMAIN}
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
@@ -13,12 +30,11 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    networks:
-      - proxy_net
 
 volumes:
   caddy_data:
   caddy_config:
+  tailscale_state:
 
 networks:
   proxy_net:
