@@ -31,45 +31,52 @@ graph LR
 
 ## 📋 Prerequisites
 
-- A Proxmox VM running Linux (Debian/Ubuntu recommended)
+- A Proxmox server
 - A TrueNAS server with SMB shares configured
 - A Cloudflare account managing your domain's DNS
 - A Tailscale account
 
-## 🚀 Setup
+## 🖥️ VM Creation (from Proxmox host)
 
-### 1. Clone the repo
-
-```bash
-git clone <repo-url> ~/homelab
-cd ~/homelab
-```
-
-### 2. Install Docker and Tailscale
+Run this on the Proxmox host to create and provision the homelab VM:
 
 ```bash
-./install.sh
+./create-vm.sh
 ```
 
-⚠️ Log out and back in for the docker group to take effect.
+This downloads an Ubuntu 24.04 cloud image, creates the VM, and uses cloud-init to automatically install Docker, Tailscale, git, and cifs-utils, then clones the repo and runs `init.sh`.
 
-### 3. Authenticate Tailscale on the host
+Override defaults with environment variables:
+
+| Variable | Default | Description |
+|---|---|---|
+| `VMID` | `200` | Proxmox VM ID |
+| `VM_NAME` | `homelab` | VM name |
+| `CORES` | `2` | CPU cores |
+| `MEMORY` | `2048` | RAM in MB |
+| `DISK_SIZE` | `32G` | Disk size |
+| `STORAGE` | `local-lvm` | Proxmox storage pool |
+| `BRIDGE` | `vmbr0` | Network bridge |
+| `SSH_KEYS` | `~/.ssh/authorized_keys` | SSH public keys file |
+
+```bash
+# Example: larger VM with custom ID
+VMID=300 CORES=4 MEMORY=4096 ./create-vm.sh
+```
+
+## 🚀 Setup (inside the VM)
+
+After the VM boots, SSH in and complete the remaining manual steps:
+
+### 1. Authenticate Tailscale
 
 ```bash
 tailscale up
 ```
 
-### 4. Initialize the homelab
+### 2. Configure environment variables
 
-```bash
-./init.sh
-```
-
-This creates the `proxy_net` Docker network and copies `.env.template` into each stack directory.
-
-### 5. Configure environment variables
-
-Edit each stack's `.env` file with your credentials:
+Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 
 **gateway/.env**
 
@@ -100,11 +107,11 @@ Edit each stack's `.env` file with your credentials:
 | `NAS_MUSIC_USER` | NAS user for music share |
 | `NAS_MUSIC_PASSWORD` | NAS password for music share |
 
-### 6. DNS
+### 3. DNS
 
 A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflare. This avoids double-hopping through the Cloudflare proxy, which causes issues with Android clients. No per-service DNS changes needed — all subdomains resolve automatically.
 
-### 7. Start the stacks
+### 4. Start the stacks
 
 ```bash
 ./start.sh
@@ -112,7 +119,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 
 This starts gateway, security, and media in order.
 
-### 8. ✅ Verify
+### 5. ✅ Verify
 
 ```bash
 # Check Caddy TLS certificates
@@ -162,6 +169,7 @@ Vaultwarden is backed up daily at 03:00 AM to the TrueNAS SMB share. The backup 
 
 ```
 ~/homelab/
+├── create-vm.sh            # Creates and provisions the Proxmox VM
 ├── install.sh              # Installs Docker and Tailscale
 ├── init.sh                 # Creates network, dirs, and .env files
 ├── start.sh                # Starts all stacks in order
