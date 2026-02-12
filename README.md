@@ -4,11 +4,25 @@ Docker Compose homelab running behind Caddy (reverse proxy) and Tailscale (VPN).
 
 ## 🏗️ Architecture
 
-```
-                Tailscale
-                    │
-                  Caddy  ──── proxy_net ────┬── Vaultwarden + Backup sidecar
-                (gateway)                   └── Navidrome
+```mermaid
+graph LR
+    TS[Tailscale] --> Caddy
+
+    subgraph VM["Proxmox VM"]
+        subgraph proxy_net
+            Caddy --> Vaultwarden
+            Caddy --> Navidrome
+            Vaultwarden -.- Backup[Backup Sidecar]
+        end
+    end
+
+    subgraph NAS["TrueNAS (separate machine)"]
+        backups["/backups (SMB)"]
+        music["/music (SMB)"]
+    end
+
+    Backup -->|CIFS| backups
+    Navidrome -->|CIFS read-only| music
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
