@@ -206,6 +206,7 @@ Vaultwarden is backed up daily at 03:00 AM to the TrueNAS SMB share. The backup 
 ├── install.sh              # Installs Docker and Tailscale
 ├── init.sh                 # Creates network, dirs, and .env files
 ├── start.sh                # Starts all stacks in order
+├── clean.sh                # Removes all Docker resources
 ├── gateway/
 │   ├── docker-compose.yml  # Tailscale + Caddy
 │   ├── Dockerfile          # Caddy with Cloudflare DNS plugin
