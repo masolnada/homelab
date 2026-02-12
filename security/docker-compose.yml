@@ -1,0 +1,43 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest@sha256:53d9214f9df2aead45dd5224f6a72df5b103a22d59fb37c23f59427a84eef322
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
+      - TZ=${TZ}
+    volumes:
+      - vaultwarden_data:/data
+    networks:
+      - proxy_net
+    labels:
+      - docker-volume-backup.stop-during-backup=vaultwarden
+
+  backup:
+    image: offen/docker-volume-backup:latest@sha256:26df48fdb7bd32f114fc7420beae3960055ae1f40ba5ff3bfd787cb5f15fefa5
+    container_name: vaultwarden-backup
+    restart: unless-stopped
+    environment:
+      - BACKUP_CRON_EXPRESSION=0 3 * * *
+      - BACKUP_RETENTION_DAYS=30
+      - BACKUP_FILENAME=vaultwarden-%Y-%m-%dT%H-%M-%S.tar.gz
+      - TZ=${TZ}
+    volumes:
+      - vaultwarden_data:/backup/vaultwarden_data:ro
+      - nas_backup:/archive
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy_net
+
+volumes:
+  vaultwarden_data:
+  nas_backup:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_BACKUP_SHARE}
+      o: addr=${NAS_IP},username=${NAS_BACKUP_USER},password=${NAS_BACKUP_PASSWORD},file_mode=0700,dir_mode=0700
+
+networks:
+  proxy_net:
+    external: true

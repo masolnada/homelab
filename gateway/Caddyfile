@@ -1,0 +1,11 @@
+{
+	acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+}
+
+vault.{$DOMAIN} {
+	reverse_proxy vaultwarden:80
+}
+
+music.{$DOMAIN} {
+	reverse_proxy navidrome:4533
+}
