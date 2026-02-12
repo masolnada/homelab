@@ -41,13 +41,13 @@ graph LR
 Run this from any machine with the repo cloned, via SSH to the Proxmox host:
 
 ```bash
-ssh root@<proxmox-ip> 'bash -s' < create-vm.sh
+ssh root@<proxmox-ip> "SSH_PUB_KEY='$(cat ~/.ssh/id_infra_v2.pub)' bash -s" < create-vm.sh
 ```
 
 Or with custom variables:
 
 ```bash
-ssh root@<proxmox-ip> 'VMID=300 CORES=8 bash -s' < create-vm.sh
+ssh root@<proxmox-ip> "SSH_PUB_KEY='$(cat ~/.ssh/id_infra_v2.pub)' VMID=300 CORES=8 bash -s" < create-vm.sh
 ```
 
 This downloads an Ubuntu 24.04 cloud image, creates the VM, and uses cloud-init to automatically install Docker, Tailscale, git, and cifs-utils, then clones the repo and runs `init.sh`.
@@ -63,11 +63,13 @@ Override defaults with environment variables:
 | `DISK_SIZE` | `32G` | Disk size |
 | `STORAGE` | `local-lvm` | Proxmox storage pool |
 | `BRIDGE` | `vmbr0` | Network bridge |
-| `SSH_KEYS` | `~/.ssh/authorized_keys` | SSH public keys file |
+| `VLAN_TAG` | `20` | VLAN tag for the VM network |
+| `VM_USER` | `ubuntu` | VM login username |
+| `SSH_PUB_KEY` | *(required)* | SSH public key content (e.g. `$(cat ~/.ssh/id_infra_v2.pub)`) |
 
 ```bash
 # Example: custom VM ID with more resources
-ssh root@<proxmox-ip> 'VMID=300 CORES=8 MEMORY=8192 bash -s' < create-vm.sh
+ssh root@<proxmox-ip> "SSH_PUB_KEY='$(cat ~/.ssh/id_infra_v2.pub)' VMID=300 CORES=8 MEMORY=8192 bash -s" < create-vm.sh
 ```
 
 ## 🚀 Setup (inside the VM)

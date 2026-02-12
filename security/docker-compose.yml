@@ -24,7 +24,7 @@ services:
       - TZ=${TZ}
     volumes:
       - vaultwarden_data:/backup/vaultwarden_data:ro
-      - nas_backup:/archive
+      - nas_backup:/archive/vaultwarden
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - proxy_net
