@@ -112,7 +112,9 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | Variable | Description |
 |---|---|
 | `DOMAIN` | Your base domain (e.g. `life.marcsolanadal.com`) |
-| `CLOUDFLARE_API_TOKEN` | API token — create at My Profile > API Tokens > **Edit zone DNS** template, scoped to your domain's zone (requires Zone / DNS / Edit permission) |
+| `CLOUDFLARE_API_TOKEN` | API token — create at My Profile > API Tokens > **Edit zone DNS** template, scoped to your domain's zone |
+
+> **Warning**: The Cloudflare API token must have both **Zone:DNS:Edit** and **Zone:Zone:Read** permissions, scoped to your domain's zone. Without these, Caddy's DNS-01 challenge will fail with "timed out waiting for record to fully propagate".
 | `TAILSCALE_AUTHKEY` | Tailscale auth key (generate at Tailscale admin console > Settings > Keys) |
 
 **security/.env**
