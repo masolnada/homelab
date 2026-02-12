@@ -6,7 +6,6 @@ services:
     environment:
       - ND_SCANSCHEDULE=1h
       - ND_LOGLEVEL=info
-      - ND_BASEURL=
       - TZ=${TIMEZONE}
     volumes:
       - navidrome_data:/data

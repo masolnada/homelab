@@ -41,6 +41,19 @@ install_tailscale() {
   echo "==> Tailscale installed: $(tailscale version | head -1)"
 }
 
+# ── Lazydocker ───────────────────────────────────────────────────────
+install_lazydocker() {
+  if command -v lazydocker &>/dev/null; then
+    echo "==> Lazydocker already installed"
+    return
+  fi
+
+  echo "==> Installing Lazydocker..."
+  curl -fsSL https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | sudo bash
+
+  echo "==> Lazydocker installed"
+}
+
 # ── Main ──────────────────────────────────────────────────────────────
 echo "Homelab dependency installer"
 echo "============================"
@@ -49,6 +62,8 @@ echo ""
 install_docker
 echo ""
 install_tailscale
+echo ""
+install_lazydocker
 
 echo ""
 echo "Installation complete!"

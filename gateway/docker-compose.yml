@@ -1,6 +1,6 @@
 services:
   tailscale:
-    image: tailscale/tailscale:latest
+    image: tailscale/tailscale:latest@sha256:21df0b5a84efa35c0a507f4dd2340e1b1295683634a28968707354d5bd991d9c
     container_name: tailscale-gateway
     restart: unless-stopped
     hostname: homelab-gateway
@@ -15,6 +15,11 @@ services:
       - /dev/net/tun:/dev/net/tun
     networks:
       - proxy_net
+    healthcheck:
+      test: ["CMD", "tailscale", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
 
   caddy:
     build: .
@@ -22,7 +27,8 @@ services:
     restart: unless-stopped
     network_mode: service:tailscale
     depends_on:
-      - tailscale
+      tailscale:
+        condition: service_healthy
     environment:
       - DOMAIN=${DOMAIN}
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
