@@ -92,13 +92,13 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 |---|---|
 | `DOMAIN` | Your base domain (e.g. `life.marcsolanadal.com`) |
 | `CLOUDFLARE_API_TOKEN` | API token with DNS edit permissions for your zone |
-| `TS_AUTHKEY` | Tailscale auth key (generate at Tailscale admin console > Settings > Keys) |
+| `TAILSCALE_AUTHKEY` | Tailscale auth key (generate at Tailscale admin console > Settings > Keys) |
 
 **security/.env**
 
 | Variable | Description |
 |---|---|
-| `TZ` | Timezone (e.g. `Europe/Madrid`) |
+| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
 | `VAULTWARDEN_ADMIN_TOKEN` | Admin panel token — generate with `openssl rand -base64 48` |
 | `NAS_IP` | TrueNAS IP address |
 | `NAS_BACKUP_SHARE` | SMB share name for backups |
@@ -109,7 +109,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 
 | Variable | Description |
 |---|---|
-| `TZ` | Timezone (e.g. `Europe/Madrid`) |
+| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
 | `NAS_IP` | TrueNAS IP address |
 | `NAS_MUSIC_SHARE` | SMB share name for music library |
 | `NAS_MUSIC_USER` | NAS user for music share |
@@ -181,16 +181,18 @@ Vaultwarden is backed up daily at 03:00 AM to the TrueNAS SMB share. The backup 
 ├── install.sh              # Installs Docker and Tailscale
 ├── init.sh                 # Creates network, dirs, and .env files
 ├── start.sh                # Starts all stacks in order
-├── .env.template           # Master env template
 ├── gateway/
 │   ├── docker-compose.yml  # Tailscale + Caddy
 │   ├── Dockerfile          # Caddy with Cloudflare DNS plugin
 │   ├── Caddyfile           # Reverse proxy config
+│   ├── .env.example        # Gateway env template
 │   └── .env
 ├── security/
 │   ├── docker-compose.yml  # Vaultwarden + backup sidecar
+│   ├── .env.example        # Security env template
 │   └── .env
 └── media/
     ├── docker-compose.yml  # Navidrome
+    ├── .env.example        # Media env template
     └── .env
 ```

@@ -7,7 +7,7 @@ services:
       - ND_SCANSCHEDULE=1h
       - ND_LOGLEVEL=info
       - ND_BASEURL=
-      - TZ=${TZ}
+      - TZ=${TIMEZONE}
     volumes:
       - navidrome_data:/data
       - nas_music:/music:ro

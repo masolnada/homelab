@@ -1,6 +1,6 @@
-# Environment files (keep the template)
+# Environment files (keep the examples)
 .env
-!.env.template
+!.env.example
 
 # Docker runtime
 docker-compose.override.yml

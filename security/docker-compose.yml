@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
-      - TZ=${TZ}
+      - TZ=${TIMEZONE}
     volumes:
       - vaultwarden_data:/data
     networks:
@@ -21,7 +21,7 @@ services:
       - BACKUP_CRON_EXPRESSION=0 3 * * *
       - BACKUP_RETENTION_DAYS=30
       - BACKUP_FILENAME=vaultwarden-%Y-%m-%dT%H-%M-%S.tar.gz
-      - TZ=${TZ}
+      - TZ=${TIMEZONE}
     volumes:
       - vaultwarden_data:/backup/vaultwarden_data:ro
       - nas_backup:/archive/vaultwarden
