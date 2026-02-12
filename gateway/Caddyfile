@@ -1,16 +1,20 @@
-(cloudflare) {
+*.{$DOMAIN} {
 	tls {
 		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
 		resolvers 1.1.1.1 1.0.0.1
 	}
-}
 
-vault.{$DOMAIN} {
-	reverse_proxy vaultwarden:80
-	import cloudflare
-}
+	@vault host vault.{$DOMAIN}
+	handle @vault {
+		reverse_proxy vaultwarden:80
+	}
 
-music.{$DOMAIN} {
-	reverse_proxy navidrome:4533
-	import cloudflare
+	@music host music.{$DOMAIN}
+	handle @music {
+		reverse_proxy navidrome:4533
+	}
+
+	handle {
+		respond "Not found" 404
+	}
 }
