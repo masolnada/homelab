@@ -4,8 +4,8 @@ set -euo pipefail
 # ── Configuration ─────────────────────────────────────────────────────
 VMID=${VMID:-200}
 VM_NAME=${VM_NAME:-homelab}
-CORES=${CORES:-2}
-MEMORY=${MEMORY:-2048}
+CORES=${CORES:-4}
+MEMORY=${MEMORY:-4096}
 DISK_SIZE=${DISK_SIZE:-32G}
 STORAGE=${STORAGE:-local-lvm}
 BRIDGE=${BRIDGE:-vmbr0}

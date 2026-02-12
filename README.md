@@ -38,10 +38,16 @@ graph LR
 
 ## 🖥️ VM Creation (from Proxmox host)
 
-Run this on the Proxmox host to create and provision the homelab VM:
+Run this from any machine with the repo cloned, via SSH to the Proxmox host:
 
 ```bash
-./create-vm.sh
+ssh root@<proxmox-ip> 'bash -s' < create-vm.sh
+```
+
+Or with custom variables:
+
+```bash
+ssh root@<proxmox-ip> 'VMID=300 CORES=8 bash -s' < create-vm.sh
 ```
 
 This downloads an Ubuntu 24.04 cloud image, creates the VM, and uses cloud-init to automatically install Docker, Tailscale, git, and cifs-utils, then clones the repo and runs `init.sh`.
@@ -52,16 +58,16 @@ Override defaults with environment variables:
 |---|---|---|
 | `VMID` | `200` | Proxmox VM ID |
 | `VM_NAME` | `homelab` | VM name |
-| `CORES` | `2` | CPU cores |
-| `MEMORY` | `2048` | RAM in MB |
+| `CORES` | `4` | CPU cores |
+| `MEMORY` | `4096` | RAM in MB |
 | `DISK_SIZE` | `32G` | Disk size |
 | `STORAGE` | `local-lvm` | Proxmox storage pool |
 | `BRIDGE` | `vmbr0` | Network bridge |
 | `SSH_KEYS` | `~/.ssh/authorized_keys` | SSH public keys file |
 
 ```bash
-# Example: larger VM with custom ID
-VMID=300 CORES=4 MEMORY=4096 ./create-vm.sh
+# Example: custom VM ID with more resources
+ssh root@<proxmox-ip> 'VMID=300 CORES=8 MEMORY=8192 bash -s' < create-vm.sh
 ```
 
 ## 🚀 Setup (inside the VM)
