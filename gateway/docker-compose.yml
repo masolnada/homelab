@@ -13,6 +13,9 @@ services:
     volumes:
       - tailscale_state:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
     networks:
       - proxy_net
     healthcheck:
