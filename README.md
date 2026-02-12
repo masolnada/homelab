@@ -91,7 +91,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | Variable | Description |
 |---|---|
 | `DOMAIN` | Your base domain (e.g. `life.marcsolanadal.com`) |
-| `CLOUDFLARE_API_TOKEN` | API token with DNS edit permissions for your zone |
+| `CLOUDFLARE_API_TOKEN` | API token — create at My Profile > API Tokens > **Edit zone DNS** template, scoped to your domain's zone (requires Zone / DNS / Edit permission) |
 | `TAILSCALE_AUTHKEY` | Tailscale auth key (generate at Tailscale admin console > Settings > Keys) |
 
 **security/.env**
