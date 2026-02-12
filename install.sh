@@ -11,8 +11,13 @@ install_docker() {
   echo "==> Installing Docker via official convenience script..."
   curl -fsSL https://get.docker.com | sh
 
-  echo "==> Adding current user to docker group..."
+  echo "==> Adding users to docker group..."
   sudo usermod -aG docker "$USER"
+  # When running as root (e.g. cloud-init), also add the first non-root user
+  NORMAL_USER=$(getent passwd 1000 | cut -d: -f1)
+  if [ -n "$NORMAL_USER" ] && [ "$NORMAL_USER" != "$USER" ]; then
+    sudo usermod -aG docker "$NORMAL_USER"
+  fi
 
   echo "==> Enabling and starting Docker service..."
   sudo systemctl enable --now docker

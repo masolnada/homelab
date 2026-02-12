@@ -29,6 +29,27 @@ graph LR
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
 - 🎵 **Media** — Navidrome streaming from TrueNAS music share
 
+## 🌐 Network Flow
+
+```mermaid
+graph LR
+    Client -->|DNS lookup| CF[Cloudflare DNS]
+    CF -->|WireGuard| TS[Tailscale Gateway]
+    TS -->|TLS termination| Caddy
+    Caddy -->|HTTP proxy_net| Vaultwarden
+    Caddy -->|HTTP proxy_net| Navidrome
+    Vaultwarden -.-|CIFS LAN| NAS[TrueNAS]
+    Navidrome -.-|CIFS LAN| NAS
+
+    style CF fill:#f6821f,color:#fff
+    style TS fill:#4a5568,color:#fff
+    style Caddy fill:#22c55e,color:#fff
+```
+
+- **External**: encrypted via Tailscale (WireGuard) + Caddy (Let's Encrypt TLS)
+- **Internal**: plain HTTP over Docker's `proxy_net` — never leaves the host
+- **NAS**: direct LAN connection via CIFS, no Tailscale routing
+
 ## 📋 Prerequisites
 
 - A Proxmox server
