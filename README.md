@@ -14,6 +14,7 @@ graph LR
             Caddy --> Navidrome
             Caddy --> IHateMoney
             Vaultwarden -.- Backup[Backup Sidecar]
+            IHateMoney -.- IHMBackup[Backup Sidecar]
         end
     end
 
@@ -23,13 +24,14 @@ graph LR
     end
 
     Backup -->|CIFS| backups
+    IHMBackup -->|CIFS| backups
     Navidrome -->|CIFS read-only| music
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
 - 🎵 **Media** — Navidrome streaming from TrueNAS music share
-- 💰 **Finance** — IHateMoney shared expense tracker
+- 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 
 ## 🌐 Network Flow
 
@@ -43,6 +45,7 @@ graph LR
     Caddy -->|HTTP proxy_net| IHateMoney
     Vaultwarden -.-|CIFS LAN| NAS[TrueNAS]
     Navidrome -.-|CIFS LAN| NAS
+    IHateMoney -.-|CIFS LAN| NAS
 
     style CF fill:#f6821f,color:#fff
     style TS fill:#4a5568,color:#fff
@@ -149,6 +152,10 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 |---|---|
 | `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
 | `IHATEMONEY_SECRET_KEY` | Secret key for session signing — generate with `openssl rand -base64 48` |
+| `NAS_IP` | TrueNAS IP address |
+| `NAS_BACKUP_SHARE` | SMB share name for backups |
+| `NAS_BACKUP_USER` | NAS user for backup share |
+| `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
 ### 3. DNS
 
@@ -202,11 +209,11 @@ docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 
 ## 🔄 Backups
 
-Vaultwarden is backed up daily at 03:00 AM to the TrueNAS SMB share. The backup sidecar:
+Vaultwarden and IHateMoney are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
 
-- Pauses the Vaultwarden container during backup to prevent SQLite corruption
+- Pauses the application container during backup to prevent SQLite corruption
 - Retains 30 days of backups with automatic rotation
-- Stores backups as `vaultwarden-<timestamp>.tar.gz`
+- Stores backups as `<service>-<timestamp>.tar.gz`
 
 ## 📁 File Structure
 
@@ -232,7 +239,7 @@ Vaultwarden is backed up daily at 03:00 AM to the TrueNAS SMB share. The backup 
 │   ├── .env.example        # Media env template
 │   └── .env
 └── finance/
-    ├── docker-compose.yml  # IHateMoney expense tracker
+    ├── docker-compose.yml  # IHateMoney + backup sidecar
     ├── .env.example        # Finance env template
     └── .env
 ```
