@@ -1,0 +1,19 @@
+services:
+  ihatemoney:
+    image: ihatemoney/ihatemoney:latest@sha256:5ff0b55411f5abb98539f571af56059608dff64f0dab8509f9ebddd8aacce4bd
+    container_name: ihatemoney
+    restart: unless-stopped
+    environment:
+      - SECRET_KEY=${IHATEMONEY_SECRET_KEY}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ihatemoney_data:/database
+    networks:
+      - proxy_net
+
+volumes:
+  ihatemoney_data:
+
+networks:
+  proxy_net:
+    external: true

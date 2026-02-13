@@ -12,6 +12,7 @@ graph LR
         subgraph proxy_net
             Caddy --> Vaultwarden
             Caddy --> Navidrome
+            Caddy --> IHateMoney
             Vaultwarden -.- Backup[Backup Sidecar]
         end
     end
@@ -28,6 +29,7 @@ graph LR
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
 - 🎵 **Media** — Navidrome streaming from TrueNAS music share
+- 💰 **Finance** — IHateMoney shared expense tracker
 
 ## 🌐 Network Flow
 
@@ -38,6 +40,7 @@ graph LR
     TS -->|TLS termination| Caddy
     Caddy -->|HTTP proxy_net| Vaultwarden
     Caddy -->|HTTP proxy_net| Navidrome
+    Caddy -->|HTTP proxy_net| IHateMoney
     Vaultwarden -.-|CIFS LAN| NAS[TrueNAS]
     Navidrome -.-|CIFS LAN| NAS
 
@@ -140,6 +143,13 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_MUSIC_USER` | NAS user for music share |
 | `NAS_MUSIC_PASSWORD` | NAS password for music share |
 
+**finance/.env**
+
+| Variable | Description |
+|---|---|
+| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
+| `IHATEMONEY_SECRET_KEY` | Secret key for session signing — generate with `openssl rand -base64 48` |
+
 ### 3. DNS
 
 A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflare. This avoids double-hopping through the Cloudflare proxy, which causes issues with Android clients. No per-service DNS changes needed — all subdomains resolve automatically.
@@ -150,7 +160,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, and media in order.
+This starts gateway, security, media, and finance in order.
 
 ### 5. ✅ Verify
 
@@ -217,8 +227,12 @@ Vaultwarden is backed up daily at 03:00 AM to the TrueNAS SMB share. The backup 
 │   ├── docker-compose.yml  # Vaultwarden + backup sidecar
 │   ├── .env.example        # Security env template
 │   └── .env
-└── media/
-    ├── docker-compose.yml  # Navidrome
-    ├── .env.example        # Media env template
+├── media/
+│   ├── docker-compose.yml  # Navidrome
+│   ├── .env.example        # Media env template
+│   └── .env
+└── finance/
+    ├── docker-compose.yml  # IHateMoney expense tracker
+    ├── .env.example        # Finance env template
     └── .env
 ```

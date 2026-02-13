@@ -18,3 +18,8 @@ music.{$DOMAIN} {
 	import cloudflare
 	reverse_proxy navidrome:4533
 }
+
+money.{$DOMAIN} {
+	import cloudflare
+	reverse_proxy ihatemoney:8000
+}
