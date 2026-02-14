@@ -7,8 +7,6 @@
           url: "{{HOMEPAGE_VAR_TRUENAS_URL}}"
           key: "{{HOMEPAGE_VAR_TRUENAS_KEY}}"
           enablePools: true
-
-- Gateway:
     - Caddy:
         icon: caddy
         href: https://home.{{HOMEPAGE_VAR_DOMAIN}}

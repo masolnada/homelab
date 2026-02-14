@@ -5,10 +5,7 @@ headerStyle: clean
 layout:
   Infrastructure:
     style: row
-    columns: 1
-  Gateway:
-    style: row
-    columns: 2
+    columns: 3
   Services:
     style: row
     columns: 3

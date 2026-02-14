@@ -28,6 +28,8 @@ graph LR
         music["/music (SMB)"]
     end
 
+    Homepage -.->|API| TrueNAS
+
     Backup -->|CIFS| backups
     IHMBackup -->|CIFS| backups
     Navidrome -->|CIFS read-only| music
@@ -50,7 +52,8 @@ graph LR
     Caddy -->|HTTP proxy_net| Vaultwarden
     Caddy -->|HTTP proxy_net| Navidrome
     Caddy -->|HTTP proxy_net| IHateMoney
-    Vaultwarden -.-|CIFS LAN| NAS[TrueNAS]
+    Homepage -.->|API| NAS[TrueNAS]
+    Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
     IHateMoney -.-|CIFS LAN| NAS
 
@@ -172,6 +175,8 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAVIDROME_USER` | Navidrome username (for the Subsonic API widget) |
 | `NAVIDROME_TOKEN` | `md5(password + salt)` — see [Subsonic API docs](http://www.subsonic.org/pages/api.jsp) |
 | `NAVIDROME_SALT` | Random salt string (e.g. `openssl rand -hex 8`) |
+| `TRUENAS_IP` | TrueNAS IP or hostname (e.g. `nas.home.lab`) |
+| `TRUENAS_KEY` | TrueNAS API key — generate at TrueNAS UI → user icon → **API Keys** → **Add** |
 
 > **Note**: The Navidrome widget uses the Subsonic API token auth scheme. The token is **not** your password — it's `md5(password + salt)`. Generate it with: `echo -n "yourpassword$(openssl rand -hex 8)" | md5sum`
 
@@ -180,6 +185,8 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 > **Note**: The Caddy admin API is enabled via `CADDY_ADMIN=:2019` in the gateway compose file. This binds to all interfaces inside the container (needed because Caddy uses `network_mode: service:tailscale`). It's only reachable from other containers on `proxy_net` as `tailscale-gateway:2019` — not exposed to the internet. The Homepage Caddy widget uses this to show upstream/request stats.
 
 > **Note**: Homepage reads Docker container stats (CPU, memory, network) via the Docker socket mounted read-only. The host filesystem is mounted at `/host` (read-only) for disk usage metrics.
+
+> **Note**: The TrueNAS widget connects to the TrueNAS REST API over the LAN (not via Tailscale). It shows load, uptime, alerts, and pool usage. The API key is scoped per-user — generate it from the TrueNAS web UI under your user's API Keys page.
 
 ### 3. DNS
 
