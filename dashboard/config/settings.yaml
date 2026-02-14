@@ -3,6 +3,9 @@ theme: dark
 color: slate
 headerStyle: clean
 layout:
+  Infrastructure:
+    style: row
+    columns: 1
   Gateway:
     style: row
     columns: 2

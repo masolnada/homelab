@@ -1,3 +1,13 @@
+- Infrastructure:
+    - TrueNAS:
+        icon: truenas
+        href: "{{HOMEPAGE_VAR_TRUENAS_URL}}"
+        widget:
+          type: truenas
+          url: "{{HOMEPAGE_VAR_TRUENAS_URL}}"
+          key: "{{HOMEPAGE_VAR_TRUENAS_KEY}}"
+          enablePools: true
+
 - Gateway:
     - Caddy:
         icon: caddy
