@@ -14,10 +14,11 @@ graph LR
             Caddy --> Vaultwarden
             Caddy --> Navidrome
             Caddy --> IHateMoney
-            Homepage -.->|Docker socket| Caddy
-            Homepage -.->|Docker socket| Vaultwarden
-            Homepage -.->|Docker socket| Navidrome
-            Homepage -.->|Docker socket| IHateMoney
+            Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
+            DockerProxy -.->|Docker socket| Caddy
+            DockerProxy -.->|Docker socket| Vaultwarden
+            DockerProxy -.->|Docker socket| Navidrome
+            DockerProxy -.->|Docker socket| IHateMoney
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
         end
@@ -184,7 +185,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 
 > **Note**: The Caddy admin API is enabled via `CADDY_ADMIN=:2019` in the gateway compose file. This binds to all interfaces inside the container (needed because Caddy uses `network_mode: service:tailscale`). It's only reachable from other containers on `proxy_net` as `tailscale-gateway:2019` — not exposed to the internet. The Homepage Caddy widget uses this to show upstream/request stats.
 
-> **Note**: Homepage reads Docker container stats (CPU, memory, network) via the Docker socket mounted read-only. The host filesystem is mounted at `/host` (read-only) for disk usage metrics.
+> **Note**: Homepage reads Docker container stats (CPU, memory, network) via a [Docker socket proxy](https://github.com/Tecnativa/docker-socket-proxy) instead of mounting the socket directly. The proxy only allows read access to containers, images, and networks — all write and dangerous endpoints (exec, commit, etc.) are denied by default. The host filesystem is mounted at `/host` (read-only) for disk usage metrics.
 
 > **Note**: The TrueNAS widget connects to the TrueNAS REST API over the LAN (not via Tailscale). It shows load, uptime, alerts, and pool usage. The API key is scoped per-user — generate it from the TrueNAS web UI under your user's API Keys page.
 
