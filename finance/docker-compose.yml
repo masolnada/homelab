@@ -27,6 +27,7 @@ services:
       - ihatemoney_data:/backup/ihatemoney_data:ro
       - nas_backup:/archive
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     networks:
       - proxy_net
 
