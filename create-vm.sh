@@ -78,6 +78,7 @@ packages:
 
 runcmd:
   - git clone $REPO_URL /opt/homelab
+  - chown -R $VM_USER:$VM_USER /opt/homelab
   - chmod +x /opt/homelab/install.sh /opt/homelab/init.sh /opt/homelab/start.sh
   - /opt/homelab/install.sh
   - /opt/homelab/init.sh
