@@ -1,5 +1,5 @@
 {
-	email homelab-acme.strategic802@simplelogin.com
+	email {$ACME_EMAIL}
 }
 
 (cloudflare) {
