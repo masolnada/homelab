@@ -8,10 +8,10 @@ docker network inspect proxy_net >/dev/null 2>&1 \
   || docker network create proxy_net
 
 echo "==> Creating directory structure..."
-mkdir -p "$HOMELAB_DIR"/{gateway,security,media,finance}
+mkdir -p "$HOMELAB_DIR"/{gateway,security,media,finance,dashboard}
 
 echo "==> Creating .env files from examples..."
-for stack in gateway security media finance; do
+for stack in gateway security media finance dashboard; do
   if [ ! -f "$HOMELAB_DIR/$stack/.env" ]; then
     cp "$HOMELAB_DIR/$stack/.env.example" "$HOMELAB_DIR/$stack/.env"
     echo "    Created $stack/.env"

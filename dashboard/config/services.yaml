@@ -1,0 +1,39 @@
+- Gateway:
+    - Caddy:
+        icon: caddy
+        href: https://home.{{HOMEPAGE_VAR_DOMAIN}}
+        widget:
+          type: caddy
+          url: http://tailscale-gateway:2019
+        server: my-docker
+        container: caddy
+    - Tailscale:
+        icon: tailscale
+        siteMonitor: http://tailscale-gateway:41112
+        server: my-docker
+        container: tailscale-gateway
+
+- Services:
+    - Vaultwarden:
+        icon: vaultwarden
+        href: https://vault.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://vaultwarden:80
+        server: my-docker
+        container: vaultwarden
+    - Navidrome:
+        icon: navidrome
+        href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
+        widget:
+          type: navidrome
+          url: https://music.{{HOMEPAGE_VAR_DOMAIN}}
+          user: "{{HOMEPAGE_VAR_NAVIDROME_USER}}"
+          token: "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}"
+          salt: "{{HOMEPAGE_VAR_NAVIDROME_SALT}}"
+        server: my-docker
+        container: navidrome
+    - IHateMoney:
+        icon: si-cashapp
+        href: https://money.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://ihatemoney:8000
+        server: my-docker
+        container: ihatemoney

@@ -24,6 +24,11 @@
 		reverse_proxy ihatemoney:8000
 	}
 
+	@home host home.{$DOMAIN}
+	handle @home {
+		reverse_proxy homepage:3000
+	}
+
 	handle {
 		abort
 	}

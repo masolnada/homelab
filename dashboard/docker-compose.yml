@@ -1,0 +1,21 @@
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      - HOMEPAGE_ALLOWED_HOSTS=home.${DOMAIN}
+      - HOMEPAGE_VAR_DOMAIN=${DOMAIN}
+      - HOMEPAGE_VAR_NAVIDROME_USER=${NAVIDROME_USER}
+      - HOMEPAGE_VAR_NAVIDROME_TOKEN=${NAVIDROME_TOKEN}
+      - HOMEPAGE_VAR_NAVIDROME_SALT=${NAVIDROME_SALT}
+    volumes:
+      - ./config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/host:ro
+    networks:
+      - proxy_net
+
+networks:
+  proxy_net:
+    external: true

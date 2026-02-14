@@ -1,0 +1,12 @@
+- resources:
+    cpu: true
+    memory: true
+    disk:
+      - /host
+    uptime: true
+    expanded: true
+    label: Server
+
+- search:
+    provider: google
+    target: _blank

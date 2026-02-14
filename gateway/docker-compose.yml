@@ -36,6 +36,7 @@ services:
       - DOMAIN=${DOMAIN}
       - ACME_EMAIL=${ACME_EMAIL}
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - CADDY_ADMIN=:2019
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
