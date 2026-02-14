@@ -40,7 +40,7 @@ graph LR
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
 - 🎵 **Media** — Navidrome streaming from TrueNAS music share
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
-- 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with service status, Docker stats, and server health
+- 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with service status, Docker stats (via socket proxy), and server health
 
 ## 🌐 Network Flow
 
@@ -246,42 +246,3 @@ Vaultwarden and IHateMoney are backed up daily at 03:00 AM to the TrueNAS SMB sh
 - Pauses the application container during backup to prevent SQLite corruption
 - Retains 30 days of backups with automatic rotation
 - Stores backups as `<service>-<timestamp>.tar.gz`
-
-## 📁 File Structure
-
-```
-~/homelab/
-├── create-vm.sh            # Creates and provisions the Proxmox VM
-├── install.sh              # Installs Docker and Tailscale
-├── init.sh                 # Creates network, dirs, and .env files
-├── start.sh                # Starts all stacks in order
-├── clean.sh                # Removes all Docker resources
-├── gateway/
-│   ├── docker-compose.yml  # Tailscale + Caddy
-│   ├── Dockerfile          # Caddy with Cloudflare DNS plugin
-│   ├── Caddyfile           # Reverse proxy config
-│   ├── .env.example        # Gateway env template
-│   └── .env
-├── security/
-│   ├── docker-compose.yml  # Vaultwarden + backup sidecar
-│   ├── .env.example        # Security env template
-│   └── .env
-├── media/
-│   ├── docker-compose.yml  # Navidrome
-│   ├── .env.example        # Media env template
-│   └── .env
-├── finance/
-│   ├── docker-compose.yml  # IHateMoney + backup sidecar
-│   ├── .env.example        # Finance env template
-│   └── .env
-└── dashboard/
-    ├── docker-compose.yml  # Homepage dashboard
-    ├── .env.example        # Dashboard env template
-    ├── .env
-    └── config/
-        ├── services.yaml   # Service definitions and widgets
-        ├── widgets.yaml    # System resource widgets
-        ├── settings.yaml   # Theme and layout
-        ├── docker.yaml     # Docker socket provider
-        └── bookmarks.yaml  # Bookmarks (empty)
-```
