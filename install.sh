@@ -42,6 +42,13 @@ install_tailscale() {
 }
 
 # ── Lazydocker ───────────────────────────────────────────────────────
+install_timezone() {
+  echo "==> Setting timezone to Europe/Andorra..."
+  sudo timedatectl set-timezone Europe/Andorra
+  echo "==> Timezone set: $(timedatectl show -p Timezone --value)"
+}
+
+# ── Lazydocker ───────────────────────────────────────────────────────
 install_lazydocker() {
   if command -v lazydocker &>/dev/null; then
     echo "==> Lazydocker already installed"
@@ -59,6 +66,8 @@ echo "Homelab dependency installer"
 echo "============================"
 echo ""
 
+install_timezone
+echo ""
 install_docker
 echo ""
 install_tailscale
