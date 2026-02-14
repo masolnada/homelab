@@ -2,25 +2,29 @@
 	email {$ACME_EMAIL}
 }
 
-(cloudflare) {
+*.{$DOMAIN} {
 	tls {
 		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
 		resolvers nina.ns.cloudflare.com randy.ns.cloudflare.com
 		propagation_delay 60s
 	}
-}
 
-vault.{$DOMAIN} {
-	import cloudflare
-	reverse_proxy vaultwarden:80
-}
+	@vault host vault.{$DOMAIN}
+	handle @vault {
+		reverse_proxy vaultwarden:80
+	}
 
-music.{$DOMAIN} {
-	import cloudflare
-	reverse_proxy navidrome:4533
-}
+	@music host music.{$DOMAIN}
+	handle @music {
+		reverse_proxy navidrome:4533
+	}
 
-money.{$DOMAIN} {
-	import cloudflare
-	reverse_proxy ihatemoney:8000
+	@money host money.{$DOMAIN}
+	handle @money {
+		reverse_proxy ihatemoney:8000
+	}
+
+	handle {
+		abort
+	}
 }
