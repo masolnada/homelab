@@ -10,9 +10,14 @@ graph LR
 
     subgraph VM["Proxmox VM"]
         subgraph proxy_net
+            Caddy --> Homepage
             Caddy --> Vaultwarden
             Caddy --> Navidrome
             Caddy --> IHateMoney
+            Homepage -.->|Docker socket| Caddy
+            Homepage -.->|Docker socket| Vaultwarden
+            Homepage -.->|Docker socket| Navidrome
+            Homepage -.->|Docker socket| IHateMoney
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
         end
@@ -32,6 +37,7 @@ graph LR
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
 - 🎵 **Media** — Navidrome streaming from TrueNAS music share
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
+- 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with service status, Docker stats, and server health
 
 ## 🌐 Network Flow
 
@@ -40,6 +46,7 @@ graph LR
     Client -->|DNS lookup| CF[Cloudflare DNS]
     CF -->|WireGuard| TS[Tailscale Gateway]
     TS -->|TLS termination| Caddy
+    Caddy -->|HTTP proxy_net| Homepage
     Caddy -->|HTTP proxy_net| Vaultwarden
     Caddy -->|HTTP proxy_net| Navidrome
     Caddy -->|HTTP proxy_net| IHateMoney
@@ -157,6 +164,23 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
+**dashboard/.env**
+
+| Variable | Description |
+|---|---|
+| `DOMAIN` | Your base domain (e.g. `life.marcsolanadal.com`) |
+| `NAVIDROME_USER` | Navidrome username (for the Subsonic API widget) |
+| `NAVIDROME_TOKEN` | `md5(password + salt)` — see [Subsonic API docs](http://www.subsonic.org/pages/api.jsp) |
+| `NAVIDROME_SALT` | Random salt string (e.g. `openssl rand -hex 8`) |
+
+> **Note**: The Navidrome widget uses the Subsonic API token auth scheme. The token is **not** your password — it's `md5(password + salt)`. Generate it with: `echo -n "yourpassword$(openssl rand -hex 8)" | md5sum`
+
+> **Note**: Homepage requires `HOMEPAGE_ALLOWED_HOSTS` to match the hostname in the request. This is set automatically from `DOMAIN` in the compose file. If you see 403 errors, check this value matches your subdomain.
+
+> **Note**: The Caddy admin API is enabled via `CADDY_ADMIN=:2019` in the gateway compose file. This binds to all interfaces inside the container (needed because Caddy uses `network_mode: service:tailscale`). It's only reachable from other containers on `proxy_net` as `tailscale-gateway:2019` — not exposed to the internet. The Homepage Caddy widget uses this to show upstream/request stats.
+
+> **Note**: Homepage reads Docker container stats (CPU, memory, network) via the Docker socket mounted read-only. The host filesystem is mounted at `/host` (read-only) for disk usage metrics.
+
 ### 3. DNS
 
 A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflare. This avoids double-hopping through the Cloudflare proxy, which causes issues with Android clients. No per-service DNS changes needed — all subdomains resolve automatically.
@@ -167,7 +191,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, and finance in order.
+This starts gateway, security, media, finance, and dashboard in order.
 
 ### 5. ✅ Verify
 
@@ -238,8 +262,18 @@ Vaultwarden and IHateMoney are backed up daily at 03:00 AM to the TrueNAS SMB sh
 │   ├── docker-compose.yml  # Navidrome
 │   ├── .env.example        # Media env template
 │   └── .env
-└── finance/
-    ├── docker-compose.yml  # IHateMoney + backup sidecar
-    ├── .env.example        # Finance env template
-    └── .env
+├── finance/
+│   ├── docker-compose.yml  # IHateMoney + backup sidecar
+│   ├── .env.example        # Finance env template
+│   └── .env
+└── dashboard/
+    ├── docker-compose.yml  # Homepage dashboard
+    ├── .env.example        # Dashboard env template
+    ├── .env
+    └── config/
+        ├── services.yaml   # Service definitions and widgets
+        ├── widgets.yaml    # System resource widgets
+        ├── settings.yaml   # Theme and layout
+        ├── docker.yaml     # Docker socket provider
+        └── bookmarks.yaml  # Bookmarks (empty)
 ```
