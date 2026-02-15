@@ -19,6 +19,9 @@ graph LR
             Caddy --> Sonarr
             Caddy --> Radarr
             Caddy --> qBittorrent
+            Caddy --> Prowlarr
+            Prowlarr -->|sync| Sonarr
+            Prowlarr -->|sync| Radarr
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -29,6 +32,7 @@ graph LR
             DockerProxy -.->|Docker socket| Sonarr
             DockerProxy -.->|Docker socket| Radarr
             DockerProxy -.->|Docker socket| qBittorrent
+            DockerProxy -.->|Docker socket| Prowlarr
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
         end
@@ -54,7 +58,7 @@ graph LR
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
 - 🎵 **Music** — Navidrome streaming from TrueNAS music share
 - 🎬 **Video** — Jellyfin (streaming), Jellyseerr (requests), Sonarr (TV), Radarr (movies)
-- ⬇️ **Downloads** — qBittorrent download client
+- ⬇️ **Downloads** — qBittorrent download client, Prowlarr indexer manager
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with service status, Docker stats (via socket proxy), and server health
 
@@ -88,6 +92,7 @@ graph LR
     Caddy -->|HTTP proxy_net| Sonarr
     Caddy -->|HTTP proxy_net| Radarr
     Caddy -->|HTTP proxy_net| qBittorrent
+    Caddy -->|HTTP proxy_net| Prowlarr
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS

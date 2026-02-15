@@ -57,6 +57,12 @@
         siteMonitor: http://qbittorrent:8080
         server: my-docker
         container: qbittorrent
+    - Prowlarr:
+        icon: prowlarr
+        href: https://prowlarr.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://prowlarr:9696
+        server: my-docker
+        container: prowlarr
 
 - Services:
     - Vaultwarden:

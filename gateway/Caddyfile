@@ -49,6 +49,11 @@
 		reverse_proxy qbittorrent:8080
 	}
 
+	@prowlarr host prowlarr.{$DOMAIN}
+	handle @prowlarr {
+		reverse_proxy prowlarr:9696
+	}
+
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000
