@@ -17,7 +17,6 @@
         container: caddy
     - Tailscale:
         icon: tailscale
-        siteMonitor: http://tailscale-gateway:41112
         server: my-docker
         container: tailscale-gateway
 
