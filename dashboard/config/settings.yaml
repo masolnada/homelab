@@ -9,6 +9,3 @@ layout:
   Services:
     style: row
     columns: 3
-  Management:
-    style: row
-    columns: 3

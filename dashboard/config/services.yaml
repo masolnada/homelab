@@ -19,6 +19,12 @@
         icon: tailscale
         server: my-docker
         container: tailscale-gateway
+    - Proxmox:
+        icon: proxmox
+        href: https://pve.home.lab:8006/
+    - OPNsense:
+        icon: opnsense
+        href: https://192.168.10.1/
 
 - Services:
     - Vaultwarden:
