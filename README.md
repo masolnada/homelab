@@ -44,8 +44,7 @@ graph LR
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
-- 🎵 **Music** — Navidrome streaming from TrueNAS music share
-- 🎬 **Video** — Jellyfin media streaming
+- 🎬 **Media** — Jellyfin (video streaming), Navidrome (music streaming)
 - ⬇️ **Downloads** — qBittorrent download client
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with service status, Docker stats (via socket proxy), and server health
@@ -169,17 +168,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
-**music/.env**
-
-| Variable | Description |
-|---|---|
-| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
-| `NAS_IP` | TrueNAS IP address |
-| `NAS_MEDIA_SHARE` | SMB share name for the media share (e.g. `media`) |
-| `NAS_MEDIA_USER` | NAS user for media share |
-| `NAS_MEDIA_PASSWORD` | NAS password for media share |
-
-**video/.env**
+**media/.env**
 
 | Variable | Description |
 |---|---|
@@ -243,7 +232,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, music, downloads, video, finance, and dashboard in order.
+This starts gateway, security, media, downloads, finance, and dashboard in order.
 
 ### 5. ✅ Verify
 
@@ -262,7 +251,7 @@ docker ps
 
 Before starting the stacks, make sure your TrueNAS server has:
 
-1. **SMB shares** — a backup share for Vaultwarden/IHateMoney, and a media share with subdirectories for music, movies, tv, and downloads
+1. **SMB shares** — a backup share for Vaultwarden/IHateMoney, and a media share with subdirectories for music and downloads
 2. **Dedicated users** — a backup user (read/write) and a media user (read/write for qBittorrent, read-only for Navidrome/Jellyfin)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
 

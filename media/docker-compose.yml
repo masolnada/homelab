@@ -11,8 +11,24 @@ services:
     networks:
       - proxy_net
 
+  navidrome:
+    image: deluan/navidrome:latest@sha256:b727edf8e091ad84106218dbd3517772cff9803bf67bbedb934f8a0c26cec495
+    container_name: navidrome
+    restart: unless-stopped
+    environment:
+      - ND_SCANSCHEDULE=1h
+      - ND_LOGLEVEL=info
+      - ND_MUSICFOLDER=/media/music
+      - TZ=${TIMEZONE}
+    volumes:
+      - navidrome_data:/data
+      - nas_media:/media:ro
+    networks:
+      - proxy_net
+
 volumes:
   jellyfin_config:
+  navidrome_data:
   nas_media:
     driver: local
     driver_opts:

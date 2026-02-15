@@ -33,6 +33,17 @@
         siteMonitor: http://jellyfin:8096
         server: my-docker
         container: jellyfin
+    - Navidrome:
+        icon: navidrome
+        href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
+        widget:
+          type: navidrome
+          url: https://music.{{HOMEPAGE_VAR_DOMAIN}}
+          user: "{{HOMEPAGE_VAR_NAVIDROME_USER}}"
+          token: "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}"
+          salt: "{{HOMEPAGE_VAR_NAVIDROME_SALT}}"
+        server: my-docker
+        container: navidrome
     - qBittorrent:
         icon: qbittorrent
         href: https://download.{{HOMEPAGE_VAR_DOMAIN}}
@@ -47,17 +58,6 @@
         siteMonitor: http://vaultwarden:80
         server: my-docker
         container: vaultwarden
-    - Navidrome:
-        icon: navidrome
-        href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
-        widget:
-          type: navidrome
-          url: https://music.{{HOMEPAGE_VAR_DOMAIN}}
-          user: "{{HOMEPAGE_VAR_NAVIDROME_USER}}"
-          token: "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}"
-          salt: "{{HOMEPAGE_VAR_NAVIDROME_SALT}}"
-        server: my-docker
-        container: navidrome
     - IHateMoney:
         icon: si-cashapp
         href: https://money.{{HOMEPAGE_VAR_DOMAIN}}
