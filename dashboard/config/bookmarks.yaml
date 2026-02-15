@@ -1,4 +1,4 @@
-- Infrastructure:
+- Management:
     - Proxmox:
         - icon: proxmox
           href: https://pve.home.lab:8006/
