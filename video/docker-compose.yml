@@ -11,51 +11,8 @@ services:
     networks:
       - proxy_net
 
-  jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
-    restart: unless-stopped
-    environment:
-      - TZ=${TIMEZONE}
-      - CONFIG_DIRECTORY=/app/config
-    volumes:
-      - jellyseerr_config:/app/config
-    networks:
-      - proxy_net
-
-  sonarr:
-    image: linuxserver/sonarr:latest
-    container_name: sonarr
-    restart: unless-stopped
-    environment:
-      - TZ=${TIMEZONE}
-      - PUID=${PUID}
-      - PGID=${PGID}
-    volumes:
-      - sonarr_config:/config
-      - nas_media:/media
-    networks:
-      - proxy_net
-
-  radarr:
-    image: linuxserver/radarr:latest
-    container_name: radarr
-    restart: unless-stopped
-    environment:
-      - TZ=${TIMEZONE}
-      - PUID=${PUID}
-      - PGID=${PGID}
-    volumes:
-      - radarr_config:/config
-      - nas_media:/media
-    networks:
-      - proxy_net
-
 volumes:
   jellyfin_config:
-  jellyseerr_config:
-  sonarr_config:
-  radarr_config:
   nas_media:
     driver: local
     driver_opts:

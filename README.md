@@ -15,24 +15,14 @@ graph LR
             Caddy --> Navidrome
             Caddy --> IHateMoney
             Caddy --> Jellyfin
-            Caddy --> Jellyseerr
-            Caddy --> Sonarr
-            Caddy --> Radarr
             Caddy --> qBittorrent
-            Caddy --> Prowlarr
-            Prowlarr -->|sync| Sonarr
-            Prowlarr -->|sync| Radarr
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
             DockerProxy -.->|Docker socket| Navidrome
             DockerProxy -.->|Docker socket| IHateMoney
             DockerProxy -.->|Docker socket| Jellyfin
-            DockerProxy -.->|Docker socket| Jellyseerr
-            DockerProxy -.->|Docker socket| Sonarr
-            DockerProxy -.->|Docker socket| Radarr
             DockerProxy -.->|Docker socket| qBittorrent
-            DockerProxy -.->|Docker socket| Prowlarr
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
         end
@@ -49,16 +39,14 @@ graph LR
     IHMBackup -->|CIFS| backups
     Navidrome -->|CIFS read-only| media
     Jellyfin -->|CIFS read-only| media
-    Sonarr -->|CIFS read-write| media
-    Radarr -->|CIFS read-write| media
     qBittorrent -->|CIFS read-write| media
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
 - 🎵 **Music** — Navidrome streaming from TrueNAS music share
-- 🎬 **Video** — Jellyfin (streaming), Jellyseerr (requests), Sonarr (TV), Radarr (movies)
-- ⬇️ **Downloads** — qBittorrent download client, Prowlarr indexer manager
+- 🎬 **Video** — Jellyfin media streaming
+- ⬇️ **Downloads** — qBittorrent download client
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with service status, Docker stats (via socket proxy), and server health
 
@@ -69,12 +57,8 @@ All media services mount subfolders of a single SMB share on TrueNAS:
 ```
 media/           ← single SMB share
 ├── downloads/   ← qBittorrent download directory
-├── movies/      ← Radarr library
-├── tv/          ← Sonarr library
 └── music/       ← Navidrome library
 ```
-
-Sonarr/Radarr and qBittorrent mount the full share so hardlinks work for atomic moves between `downloads/` and the library folders.
 
 ## 🌐 Network Flow
 
@@ -88,17 +72,11 @@ graph LR
     Caddy -->|HTTP proxy_net| Navidrome
     Caddy -->|HTTP proxy_net| IHateMoney
     Caddy -->|HTTP proxy_net| Jellyfin
-    Caddy -->|HTTP proxy_net| Jellyseerr
-    Caddy -->|HTTP proxy_net| Sonarr
-    Caddy -->|HTTP proxy_net| Radarr
     Caddy -->|HTTP proxy_net| qBittorrent
-    Caddy -->|HTTP proxy_net| Prowlarr
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
     Jellyfin -.-|CIFS LAN| NAS
-    Sonarr -.-|CIFS LAN| NAS
-    Radarr -.-|CIFS LAN| NAS
     qBittorrent -.-|CIFS LAN| NAS
     IHateMoney -.-|CIFS LAN| NAS
 
@@ -206,8 +184,6 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | Variable | Description |
 |---|---|
 | `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
-| `PUID` | User ID for linuxserver containers (e.g. `1000`) |
-| `PGID` | Group ID for linuxserver containers (e.g. `1000`) |
 | `NAS_IP` | TrueNAS IP address |
 | `NAS_MEDIA_SHARE` | SMB share name for the media share (e.g. `media`) |
 | `NAS_MEDIA_USER` | NAS user for media share |
@@ -287,7 +263,7 @@ docker ps
 Before starting the stacks, make sure your TrueNAS server has:
 
 1. **SMB shares** — a backup share for Vaultwarden/IHateMoney, and a media share with subdirectories for music, movies, tv, and downloads
-2. **Dedicated users** — a backup user (read/write) and a media user (read/write for Sonarr/Radarr/qBittorrent, read-only for Navidrome/Jellyfin)
+2. **Dedicated users** — a backup user (read/write) and a media user (read/write for qBittorrent, read-only for Navidrome/Jellyfin)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
 
 ## ➕ Adding a New Service
