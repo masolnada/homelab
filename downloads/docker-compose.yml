@@ -1,0 +1,27 @@
+services:
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - qbittorrent_config:/config
+      - nas_media:/media
+    networks:
+      - proxy_net
+
+volumes:
+  qbittorrent_config:
+  nas_media:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_MEDIA_SHARE}
+      o: addr=${NAS_IP},username=${NAS_MEDIA_USER},password=${NAS_MEDIA_PASSWORD},file_mode=0664,dir_mode=0775
+
+networks:
+  proxy_net:
+    external: true

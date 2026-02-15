@@ -24,6 +24,31 @@
 		reverse_proxy ihatemoney:8000
 	}
 
+	@watch host watch.{$DOMAIN}
+	handle @watch {
+		reverse_proxy jellyfin:8096
+	}
+
+	@request host request.{$DOMAIN}
+	handle @request {
+		reverse_proxy jellyseerr:5055
+	}
+
+	@sonarr host sonarr.{$DOMAIN}
+	handle @sonarr {
+		reverse_proxy sonarr:8989
+	}
+
+	@radarr host radarr.{$DOMAIN}
+	handle @radarr {
+		reverse_proxy radarr:7878
+	}
+
+	@download host download.{$DOMAIN}
+	handle @download {
+		reverse_proxy qbittorrent:8080
+	}
+
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000

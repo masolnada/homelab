@@ -26,6 +26,38 @@
         icon: opnsense
         href: https://192.168.10.1/
 
+- Media:
+    - Jellyfin:
+        icon: jellyfin
+        href: https://watch.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://jellyfin:8096
+        server: my-docker
+        container: jellyfin
+    - Jellyseerr:
+        icon: jellyseerr
+        href: https://request.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://jellyseerr:5055
+        server: my-docker
+        container: jellyseerr
+    - Sonarr:
+        icon: sonarr
+        href: https://sonarr.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://sonarr:8989
+        server: my-docker
+        container: sonarr
+    - Radarr:
+        icon: radarr
+        href: https://radarr.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://radarr:7878
+        server: my-docker
+        container: radarr
+    - qBittorrent:
+        icon: qbittorrent
+        href: https://download.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://qbittorrent:8080
+        server: my-docker
+        container: qbittorrent
+
 - Services:
     - Vaultwarden:
         icon: vaultwarden

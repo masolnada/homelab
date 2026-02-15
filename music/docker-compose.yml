@@ -19,8 +19,8 @@ volumes:
     driver: local
     driver_opts:
       type: cifs
-      device: //${NAS_IP}/${NAS_MUSIC_SHARE}
-      o: addr=${NAS_IP},username=${NAS_MUSIC_USER},password=${NAS_MUSIC_PASSWORD},file_mode=0644,dir_mode=0755
+      device: //${NAS_IP}/${NAS_MEDIA_SHARE}/music
+      o: addr=${NAS_IP},username=${NAS_MEDIA_USER},password=${NAS_MEDIA_PASSWORD},file_mode=0644,dir_mode=0755
 
 networks:
   proxy_net:

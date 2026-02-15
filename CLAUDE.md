@@ -12,7 +12,7 @@ ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo git pull"
 # Restart a specific stack after pulling
 ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo docker compose -f <stack>/docker-compose.yml up -d"
 
-# Start all stacks in order (gateway → security → media → finance → dashboard)
+# Start all stacks in order (gateway → security → music → downloads → video → finance → dashboard)
 ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo ./start.sh"
 ```
 
@@ -20,11 +20,13 @@ README-only changes don't need a stack restart.
 
 ## Architecture
 
-Five independent Docker Compose stacks share a single `proxy_net` bridge network:
+Seven independent Docker Compose stacks share a single `proxy_net` bridge network:
 
 - **gateway/** — Tailscale sidecar + Caddy (custom build with Cloudflare DNS plugin). Caddy uses `network_mode: service:tailscale` to share its network namespace. TLS via DNS-01 challenge with Cloudflare.
 - **security/** — Vaultwarden + backup sidecar (daily CIFS backup to TrueNAS, pauses container during backup)
-- **media/** — Navidrome with read-only CIFS mount from TrueNAS music share
+- **music/** — Navidrome with read-only CIFS mount from TrueNAS media share (music subfolder)
+- **video/** — Jellyfin, Jellyseerr, Sonarr, Radarr. Mounts full NAS media share for hardlink support.
+- **downloads/** — qBittorrent. Mounts full NAS media share so Sonarr/Radarr can do atomic moves.
 - **finance/** — IHateMoney + backup sidecar (same pattern as security)
 - **dashboard/** — Homepage + Docker socket proxy (Tecnativa). Homepage connects to the proxy over TCP:2375, never touches the Docker socket directly.
 

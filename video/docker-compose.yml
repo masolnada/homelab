@@ -1,0 +1,67 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - jellyfin_config:/config
+      - nas_media:/media:ro
+    networks:
+      - proxy_net
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - jellyseerr_config:/app/config
+    networks:
+      - proxy_net
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - sonarr_config:/config
+      - nas_media:/media
+    networks:
+      - proxy_net
+
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - radarr_config:/config
+      - nas_media:/media
+    networks:
+      - proxy_net
+
+volumes:
+  jellyfin_config:
+  jellyseerr_config:
+  sonarr_config:
+  radarr_config:
+  nas_media:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_MEDIA_SHARE}
+      o: addr=${NAS_IP},username=${NAS_MEDIA_USER},password=${NAS_MEDIA_PASSWORD},file_mode=0664,dir_mode=0775
+
+networks:
+  proxy_net:
+    external: true

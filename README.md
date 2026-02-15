@@ -14,11 +14,21 @@ graph LR
             Caddy --> Vaultwarden
             Caddy --> Navidrome
             Caddy --> IHateMoney
+            Caddy --> Jellyfin
+            Caddy --> Jellyseerr
+            Caddy --> Sonarr
+            Caddy --> Radarr
+            Caddy --> qBittorrent
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
             DockerProxy -.->|Docker socket| Navidrome
             DockerProxy -.->|Docker socket| IHateMoney
+            DockerProxy -.->|Docker socket| Jellyfin
+            DockerProxy -.->|Docker socket| Jellyseerr
+            DockerProxy -.->|Docker socket| Sonarr
+            DockerProxy -.->|Docker socket| Radarr
+            DockerProxy -.->|Docker socket| qBittorrent
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
         end
@@ -26,21 +36,41 @@ graph LR
 
     subgraph NAS["TrueNAS (separate machine)"]
         backups["/backups (SMB)"]
-        music["/music (SMB)"]
+        media["/media (SMB)"]
     end
 
     Homepage -.->|API| TrueNAS
 
     Backup -->|CIFS| backups
     IHMBackup -->|CIFS| backups
-    Navidrome -->|CIFS read-only| music
+    Navidrome -->|CIFS read-only| media
+    Jellyfin -->|CIFS read-only| media
+    Sonarr -->|CIFS read-write| media
+    Radarr -->|CIFS read-write| media
+    qBittorrent -->|CIFS read-write| media
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
-- 🎵 **Media** — Navidrome streaming from TrueNAS music share
+- 🎵 **Music** — Navidrome streaming from TrueNAS music share
+- 🎬 **Video** — Jellyfin (streaming), Jellyseerr (requests), Sonarr (TV), Radarr (movies)
+- ⬇️ **Downloads** — qBittorrent download client
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with service status, Docker stats (via socket proxy), and server health
+
+## 📂 NAS Share Structure
+
+All media services mount subfolders of a single SMB share on TrueNAS:
+
+```
+media/           ← single SMB share
+├── downloads/   ← qBittorrent download directory
+├── movies/      ← Radarr library
+├── tv/          ← Sonarr library
+└── music/       ← Navidrome library
+```
+
+Sonarr/Radarr and qBittorrent mount the full share so hardlinks work for atomic moves between `downloads/` and the library folders.
 
 ## 🌐 Network Flow
 
@@ -53,9 +83,18 @@ graph LR
     Caddy -->|HTTP proxy_net| Vaultwarden
     Caddy -->|HTTP proxy_net| Navidrome
     Caddy -->|HTTP proxy_net| IHateMoney
+    Caddy -->|HTTP proxy_net| Jellyfin
+    Caddy -->|HTTP proxy_net| Jellyseerr
+    Caddy -->|HTTP proxy_net| Sonarr
+    Caddy -->|HTTP proxy_net| Radarr
+    Caddy -->|HTTP proxy_net| qBittorrent
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
+    Jellyfin -.-|CIFS LAN| NAS
+    Sonarr -.-|CIFS LAN| NAS
+    Radarr -.-|CIFS LAN| NAS
+    qBittorrent -.-|CIFS LAN| NAS
     IHateMoney -.-|CIFS LAN| NAS
 
     style CF fill:#f6821f,color:#fff
@@ -147,15 +186,39 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
-**media/.env**
+**music/.env**
 
 | Variable | Description |
 |---|---|
 | `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
 | `NAS_IP` | TrueNAS IP address |
-| `NAS_MUSIC_SHARE` | SMB share name for music library |
-| `NAS_MUSIC_USER` | NAS user for music share |
-| `NAS_MUSIC_PASSWORD` | NAS password for music share |
+| `NAS_MEDIA_SHARE` | SMB share name for the media share (e.g. `media`) |
+| `NAS_MEDIA_USER` | NAS user for media share |
+| `NAS_MEDIA_PASSWORD` | NAS password for media share |
+
+**video/.env**
+
+| Variable | Description |
+|---|---|
+| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
+| `PUID` | User ID for linuxserver containers (e.g. `1000`) |
+| `PGID` | Group ID for linuxserver containers (e.g. `1000`) |
+| `NAS_IP` | TrueNAS IP address |
+| `NAS_MEDIA_SHARE` | SMB share name for the media share (e.g. `media`) |
+| `NAS_MEDIA_USER` | NAS user for media share |
+| `NAS_MEDIA_PASSWORD` | NAS password for media share |
+
+**downloads/.env**
+
+| Variable | Description |
+|---|---|
+| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
+| `PUID` | User ID for linuxserver containers (e.g. `1000`) |
+| `PGID` | Group ID for linuxserver containers (e.g. `1000`) |
+| `NAS_IP` | TrueNAS IP address |
+| `NAS_MEDIA_SHARE` | SMB share name for the media share (e.g. `media`) |
+| `NAS_MEDIA_USER` | NAS user for media share |
+| `NAS_MEDIA_PASSWORD` | NAS password for media share |
 
 **finance/.env**
 
@@ -199,7 +262,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, finance, and dashboard in order.
+This starts gateway, security, music, downloads, video, finance, and dashboard in order.
 
 ### 5. ✅ Verify
 
@@ -216,10 +279,10 @@ docker ps
 
 ## 💾 TrueNAS Setup
 
-Before starting the security and media stacks, make sure your TrueNAS server has:
+Before starting the stacks, make sure your TrueNAS server has:
 
-1. **Two SMB shares** — one for Vaultwarden backups, one for the music library
-2. **Dedicated users** — a backup user (read/write) and a music user (read-only)
+1. **SMB shares** — a backup share for Vaultwarden/IHateMoney, and a media share with subdirectories for music, movies, tv, and downloads
+2. **Dedicated users** — a backup user (read/write) and a media user (read/write for Sonarr/Radarr/qBittorrent, read-only for Navidrome/Jellyfin)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
 
 ## ➕ Adding a New Service

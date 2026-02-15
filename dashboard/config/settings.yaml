@@ -6,6 +6,9 @@ layout:
   Infrastructure:
     style: row
     columns: 3
+  Media:
+    style: row
+    columns: 3
   Services:
     style: row
     columns: 3
