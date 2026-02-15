@@ -7,20 +7,6 @@
     expanded: true
     label: Server
 
-- customapi:
-    url: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true
-    method: GET
-    display: block
-    mappings:
-      - field: bitcoin.usd
-        label: Bitcoin
-        format: currency
-        locale: en
-        currency: USD
-      - field: bitcoin.usd_24h_change
-        label: 24h Change
-        format: percent
-
 - search:
     provider: google
     target: _blank
