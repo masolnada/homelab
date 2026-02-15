@@ -17,6 +17,7 @@ services:
     restart: unless-stopped
     environment:
       - TZ=${TIMEZONE}
+      - CONFIG_DIRECTORY=/app/config
     volumes:
       - jellyseerr_config:/app/config
     networks:
