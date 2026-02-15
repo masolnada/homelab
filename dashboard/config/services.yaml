@@ -64,16 +64,16 @@
         href: https://www.coingecko.com/en/coins/bitcoin
         widget:
           type: customapi
-          url: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true
+          url: https://api.coincap.io/v2/assets/bitcoin
           method: GET
           display: block
           mappings:
-            - field: bitcoin.usd
+            - field: data.priceUsd
               label: Price
               format: currency
               locale: en
               currency: USD
-            - field: bitcoin.usd_24h_change
+            - field: data.changePercent24Hr
               label: 24h Change
               format: percent
 
