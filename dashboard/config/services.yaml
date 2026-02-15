@@ -58,25 +58,6 @@
         server: my-docker
         container: qbittorrent
 
-- Finance:
-    - Bitcoin:
-        icon: si-bitcoin
-        href: https://www.coingecko.com/en/coins/bitcoin
-        widget:
-          type: customapi
-          url: https://api.coincap.io/v2/assets/bitcoin
-          method: GET
-          display: block
-          mappings:
-            - field: data.priceUsd
-              label: Price
-              format: currency
-              locale: en
-              currency: USD
-            - field: data.changePercent24Hr
-              label: 24h Change
-              format: percent
-
 - Services:
     - Vaultwarden:
         icon: vaultwarden
