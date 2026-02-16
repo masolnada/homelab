@@ -34,6 +34,11 @@
 		reverse_proxy qbittorrent:8080
 	}
 
+	@contacts host contacts.{$DOMAIN}
+	handle @contacts {
+		reverse_proxy radicale:5232
+	}
+
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000

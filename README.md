@@ -16,6 +16,7 @@ graph LR
             Caddy --> IHateMoney
             Caddy --> Jellyfin
             Caddy --> qBittorrent
+            Caddy --> Radicale
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -23,8 +24,10 @@ graph LR
             DockerProxy -.->|Docker socket| IHateMoney
             DockerProxy -.->|Docker socket| Jellyfin
             DockerProxy -.->|Docker socket| qBittorrent
+            DockerProxy -.->|Docker socket| Radicale
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
+            Radicale -.- RadBackup[Backup Sidecar]
         end
     end
 
@@ -37,6 +40,7 @@ graph LR
 
     Backup -->|CIFS| backups
     IHMBackup -->|CIFS| backups
+    RadBackup -->|CIFS| backups
     Navidrome -->|CIFS read-only| media
     Jellyfin -->|CIFS read-only| media
     qBittorrent -->|CIFS read-write| media
@@ -47,6 +51,7 @@ graph LR
 - 🎬 **Media** — Jellyfin (video streaming), Navidrome (music streaming)
 - ⬇️ **Downloads** — qBittorrent download client
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
+- 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with service status, Docker stats (via socket proxy), and server health
 
 ## 📂 NAS Share Structure
@@ -72,12 +77,14 @@ graph LR
     Caddy -->|HTTP proxy_net| IHateMoney
     Caddy -->|HTTP proxy_net| Jellyfin
     Caddy -->|HTTP proxy_net| qBittorrent
+    Caddy -->|HTTP proxy_net| Radicale
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
     Jellyfin -.-|CIFS LAN| NAS
     qBittorrent -.-|CIFS LAN| NAS
     IHateMoney -.-|CIFS LAN| NAS
+    Radicale -.-|CIFS LAN| NAS
 
     style CF fill:#f6821f,color:#fff
     style TS fill:#4a5568,color:#fff
@@ -201,6 +208,16 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
+**contacts/.env**
+
+| Variable | Description |
+|---|---|
+| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
+| `NAS_IP` | TrueNAS IP address |
+| `NAS_BACKUP_SHARE` | SMB share name for backups |
+| `NAS_BACKUP_USER` | NAS user for backup share |
+| `NAS_BACKUP_PASSWORD` | NAS password for backup share |
+
 **dashboard/.env**
 
 | Variable | Description |
@@ -232,7 +249,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, downloads, finance, and dashboard in order.
+This starts gateway, security, media, downloads, finance, contacts, and dashboard in order.
 
 ### 5. ✅ Verify
 
@@ -251,7 +268,7 @@ docker ps
 
 Before starting the stacks, make sure your TrueNAS server has:
 
-1. **SMB shares** — a backup share for Vaultwarden/IHateMoney, and a media share with subdirectories for music and downloads
+1. **SMB shares** — a backup share for Vaultwarden/IHateMoney/Radicale, and a media share with subdirectories for music and downloads
 2. **Dedicated users** — a backup user (read/write) and a media user (read/write for qBittorrent, read-only for Navidrome/Jellyfin)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
 
@@ -274,8 +291,22 @@ docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 
 ## 🔄 Backups
 
-Vaultwarden and IHateMoney are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
+Vaultwarden, IHateMoney, and Radicale are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
 
 - Pauses the application container during backup to prevent SQLite corruption
 - Retains 30 days of backups with automatic rotation
 - Stores backups as `<service>-<timestamp>.tar.gz`
+
+## 📇 Contacts (CardDAV)
+
+Radicale provides CardDAV contacts sync at `contacts.<DOMAIN>`. The web UI lets you create address books and manage contacts directly.
+
+**CardDAV URL**: `https://contacts.<DOMAIN>/<username>/<address-book>/`
+
+### Client Setup
+
+- **iOS**: Settings → Contacts → Accounts → Add Account → Other → Add CardDAV Account. Server: `contacts.<DOMAIN>`, then enter your username and password.
+- **Android (DAVx5)**: Install [DAVx5](https://www.davx5.com/), add account with base URL `https://contacts.<DOMAIN>`, enter your username and password.
+- **macOS**: System Settings → Internet Accounts → Add Other Account → CardDAV. Server: `contacts.<DOMAIN>`.
+
+> **Note**: Radicale uses file-based authentication by default. On first access via the web UI, enter any username/password to create your account — Radicale will store the credentials automatically.

@@ -1,0 +1,44 @@
+services:
+  radicale:
+    image: tomsquest/docker-radicale:latest@sha256:82396031da51d6105459bb829762f48153b0f28ca266d0a5baae31ea4319dfdc
+    container_name: radicale
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - radicale_data:/data
+    networks:
+      - proxy_net
+    labels:
+      - docker-volume-backup.stop-during-backup=radicale
+
+  backup:
+    image: offen/docker-volume-backup:latest@sha256:26df48fdb7bd32f114fc7420beae3960055ae1f40ba5ff3bfd787cb5f15fefa5
+    container_name: radicale-backup
+    restart: unless-stopped
+    environment:
+      - BACKUP_CRON_EXPRESSION=0 3 * * *
+      - BACKUP_RETENTION_DAYS=30
+      - BACKUP_FILENAME=radicale-%Y-%m-%dT%H-%M-%S.tar.gz
+      - BACKUP_ARCHIVE=/archive/radicale
+      - TZ=${TIMEZONE}
+    volumes:
+      - radicale_data:/backup/radicale_data:ro
+      - nas_backup:/archive
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      - proxy_net
+
+volumes:
+  radicale_data:
+  nas_backup:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_BACKUP_SHARE}
+      o: addr=${NAS_IP},username=${NAS_BACKUP_USER},password=${NAS_BACKUP_PASSWORD},file_mode=0700,dir_mode=0700
+
+networks:
+  proxy_net:
+    external: true
