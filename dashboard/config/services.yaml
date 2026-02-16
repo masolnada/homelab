@@ -38,7 +38,7 @@
         href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
         widget:
           type: navidrome
-          url: http://navidrome:4533
+          url: https://music.{{HOMEPAGE_VAR_DOMAIN}}
           user: "{{HOMEPAGE_VAR_NAVIDROME_USER}}"
           token: "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}"
           salt: "{{HOMEPAGE_VAR_NAVIDROME_SALT}}"
