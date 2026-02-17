@@ -7,12 +7,6 @@ services:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080"]
-      interval: 60s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
     volumes:
       - qbittorrent_config:/config
       - nas_media:/media
