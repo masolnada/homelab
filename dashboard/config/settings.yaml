@@ -1,7 +1,7 @@
 title: Homelab
 theme: dark
-color: slate
-headerStyle: clean
+color: stone
+headerStyle: boxed
 layout:
   Infrastructure:
     style: row
