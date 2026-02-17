@@ -6,6 +6,12 @@ services:
     environment:
       - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
       - TZ=${TIMEZONE}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
     volumes:
       - vaultwarden_data:/data
     networks:
