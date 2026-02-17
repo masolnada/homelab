@@ -20,7 +20,7 @@ volumes:
     driver_opts:
       type: cifs
       device: //${NAS_IP}/${NAS_MEDIA_SHARE}
-      o: addr=${NAS_IP},username=${NAS_MEDIA_USER},password=${NAS_MEDIA_PASSWORD},file_mode=0664,dir_mode=0775
+      o: addr=${NAS_IP},username=${NAS_MEDIA_USER},password=${NAS_MEDIA_PASSWORD},uid=${PUID},gid=${PGID},file_mode=0664,dir_mode=0775
 
 networks:
   proxy_net:
