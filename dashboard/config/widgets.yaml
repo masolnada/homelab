@@ -1,3 +1,6 @@
+- greeting:
+    text: Hello Marc. Pragmatism. Focus.
+
 - resources:
     cpu: true
     memory: true
@@ -7,6 +10,18 @@
     expanded: true
     label: Server
 
-- search:
-    provider: google
-    target: _blank
+- openmeteo:
+    label: Cardona
+    latitude: 41.9114
+    longitude: 1.6812
+    timezone: Europe/Madrid
+    units: metric
+    cache: 5
+
+- openmeteo:
+    label: Barcelona
+    latitude: 41.3874
+    longitude: 2.1686
+    timezone: Europe/Madrid
+    units: metric
+    cache: 5
