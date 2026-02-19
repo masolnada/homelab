@@ -44,6 +44,12 @@
           salt: "{{HOMEPAGE_VAR_NAVIDROME_SALT}}"
         server: my-docker
         container: navidrome
+    - Audiobookshelf:
+        icon: audiobookshelf
+        href: https://audiobooks.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://audiobookshelf:80
+        server: my-docker
+        container: audiobookshelf
     - qBittorrent:
         icon: qbittorrent
         href: https://download.{{HOMEPAGE_VAR_DOMAIN}}

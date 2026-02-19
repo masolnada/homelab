@@ -13,6 +13,7 @@ graph LR
             Caddy --> Homepage
             Caddy --> Vaultwarden
             Caddy --> Navidrome
+            Caddy --> Audiobookshelf
             Caddy --> IHateMoney
             Caddy --> Jellyfin
             Caddy --> qBittorrent
@@ -21,6 +22,7 @@ graph LR
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
             DockerProxy -.->|Docker socket| Navidrome
+            DockerProxy -.->|Docker socket| Audiobookshelf
             DockerProxy -.->|Docker socket| IHateMoney
             DockerProxy -.->|Docker socket| Jellyfin
             DockerProxy -.->|Docker socket| qBittorrent
@@ -42,13 +44,14 @@ graph LR
     IHMBackup -->|CIFS| backups
     RadBackup -->|CIFS| backups
     Navidrome -->|CIFS read-only| media
+    Audiobookshelf -->|CIFS read-only| media
     Jellyfin -->|CIFS read-only| media
     qBittorrent -->|CIFS read-write| media
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
-- 🎬 **Media** — Jellyfin (video streaming), Navidrome (music streaming)
+- 🎬 **Media** — Jellyfin (video streaming), Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts)
 - ⬇️ **Downloads** — qBittorrent download client
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
@@ -59,9 +62,10 @@ graph LR
 All media services mount subfolders of a single SMB share on TrueNAS:
 
 ```
-media/           ← single SMB share
-├── downloads/   ← qBittorrent download directory
-└── music/       ← Navidrome library
+media/            ← single SMB share
+├── audiobooks/   ← Audiobookshelf library
+├── downloads/    ← qBittorrent download directory
+└── music/        ← Navidrome library
 ```
 
 ## 🌐 Network Flow
@@ -74,6 +78,7 @@ graph LR
     Caddy -->|HTTP proxy_net| Homepage
     Caddy -->|HTTP proxy_net| Vaultwarden
     Caddy -->|HTTP proxy_net| Navidrome
+    Caddy -->|HTTP proxy_net| Audiobookshelf
     Caddy -->|HTTP proxy_net| IHateMoney
     Caddy -->|HTTP proxy_net| Jellyfin
     Caddy -->|HTTP proxy_net| qBittorrent
@@ -81,6 +86,7 @@ graph LR
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
+    Audiobookshelf -.-|CIFS LAN| NAS
     Jellyfin -.-|CIFS LAN| NAS
     qBittorrent -.-|CIFS LAN| NAS
     IHateMoney -.-|CIFS LAN| NAS

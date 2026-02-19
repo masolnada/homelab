@@ -9,6 +9,11 @@
 		propagation_delay 60s
 	}
 
+	@audiobooks host audiobooks.{$DOMAIN}
+	handle @audiobooks {
+		reverse_proxy audiobookshelf:80
+	}
+
 	@vault host vault.{$DOMAIN}
 	handle @vault {
 		reverse_proxy vaultwarden:80

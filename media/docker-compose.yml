@@ -26,9 +26,24 @@ services:
     networks:
       - proxy_net
 
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - audiobookshelf_config:/config
+      - audiobookshelf_metadata:/metadata
+      - nas_media:/media:ro
+    networks:
+      - proxy_net
+
 volumes:
   jellyfin_config:
   navidrome_data:
+  audiobookshelf_config:
+  audiobookshelf_metadata:
   nas_media:
     driver: local
     driver_opts:
