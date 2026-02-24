@@ -82,3 +82,9 @@
         siteMonitor: http://obsidian:3000
         server: my-docker
         container: obsidian
+    - CouchDB:
+        icon: couchdb
+        href: https://notes-sync.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://couchdb:5984
+        server: my-docker
+        container: couchdb

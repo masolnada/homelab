@@ -15,6 +15,18 @@ services:
     labels:
       - docker-volume-backup.stop-during-backup=obsidian
 
+  couchdb:
+    image: ghcr.io/vrtmrz/couchdb:latest
+    container_name: couchdb
+    restart: unless-stopped
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+    networks:
+      - proxy_net
+
   backup:
     image: offen/docker-volume-backup:latest@sha256:26df48fdb7bd32f114fc7420beae3960055ae1f40ba5ff3bfd787cb5f15fefa5
     container_name: obsidian-backup
@@ -40,6 +52,12 @@ volumes:
       type: cifs
       device: //${NAS_IP}/${NAS_NOTES_SHARE}
       o: addr=${NAS_IP},username=${NAS_NOTES_USER},password=${NAS_NOTES_PASSWORD},file_mode=0700,dir_mode=0700,uid=${PUID},gid=${PGID}
+  couchdb_data:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_NOTES_SHARE}/couchdb
+      o: addr=${NAS_IP},username=${NAS_NOTES_USER},password=${NAS_NOTES_PASSWORD},file_mode=0700,dir_mode=0700,uid=5984,gid=5984
   nas_backup:
     driver: local
     driver_opts:

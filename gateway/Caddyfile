@@ -53,6 +53,11 @@
 		}
 	}
 
+	@notes-sync host notes-sync.{$DOMAIN}
+	handle @notes-sync {
+		reverse_proxy couchdb:5984
+	}
+
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000

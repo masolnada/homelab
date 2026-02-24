@@ -19,6 +19,7 @@ graph LR
             Caddy --> qBittorrent
             Caddy --> Radicale
             Caddy --> Obsidian
+            Caddy --> CouchDB
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -29,6 +30,7 @@ graph LR
             DockerProxy -.->|Docker socket| qBittorrent
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Obsidian
+            DockerProxy -.->|Docker socket| CouchDB
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
@@ -57,7 +59,7 @@ graph LR
 - ⬇️ **Downloads** — qBittorrent download client
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
-- 📝 **Notes** — Obsidian web UI for note-taking (KasmVNC)
+- 📝 **Notes** — Obsidian web UI for note-taking (KasmVNC) + CouchDB for native client sync via Self-hosted LiveSync
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -87,6 +89,7 @@ graph LR
     Caddy -->|HTTP proxy_net| qBittorrent
     Caddy -->|HTTP proxy_net| Radicale
     Caddy -->|HTTP proxy_net| Obsidian
+    Caddy -->|HTTP proxy_net| CouchDB
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -242,6 +245,8 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_SHARE` | SMB share name for backups |
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
+| `COUCHDB_USER` | CouchDB admin username (e.g. `admin`) |
+| `COUCHDB_PASSWORD` | CouchDB admin password |
 
 **dashboard/.env**
 
