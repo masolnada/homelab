@@ -235,6 +235,13 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
 | `PUID` | User ID for the linuxserver container (e.g. `1000`) |
 | `PGID` | Group ID for the linuxserver container (e.g. `1000`) |
+| `NAS_IP` | TrueNAS IP address |
+| `NAS_NOTES_SHARE` | SMB share name for the notes vault (e.g. `notes`) |
+| `NAS_NOTES_USER` | NAS user for notes share |
+| `NAS_NOTES_PASSWORD` | NAS password for notes share |
+| `NAS_BACKUP_SHARE` | SMB share name for backups |
+| `NAS_BACKUP_USER` | NAS user for backup share |
+| `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
 **dashboard/.env**
 

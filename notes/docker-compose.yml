@@ -12,9 +12,40 @@ services:
       - obsidian_config:/config
     networks:
       - proxy_net
+    labels:
+      - docker-volume-backup.stop-during-backup=obsidian
+
+  backup:
+    image: offen/docker-volume-backup:latest@sha256:26df48fdb7bd32f114fc7420beae3960055ae1f40ba5ff3bfd787cb5f15fefa5
+    container_name: obsidian-backup
+    restart: unless-stopped
+    environment:
+      - BACKUP_CRON_EXPRESSION=0 3 * * *
+      - BACKUP_RETENTION_DAYS=30
+      - BACKUP_FILENAME=obsidian-%Y-%m-%dT%H-%M-%S.tar.gz
+      - BACKUP_ARCHIVE=/archive/documents/notes
+      - TZ=${TIMEZONE}
+    volumes:
+      - obsidian_config:/backup/obsidian_config:ro
+      - nas_backup:/archive
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      - proxy_net
 
 volumes:
   obsidian_config:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_NOTES_SHARE}
+      o: addr=${NAS_IP},username=${NAS_NOTES_USER},password=${NAS_NOTES_PASSWORD},file_mode=0700,dir_mode=0700
+  nas_backup:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_BACKUP_SHARE}
+      o: addr=${NAS_IP},username=${NAS_BACKUP_USER},password=${NAS_BACKUP_PASSWORD},file_mode=0700,dir_mode=0700
 
 networks:
   proxy_net:
