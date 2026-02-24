@@ -237,7 +237,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_NOTES_SHARE` | SMB share name for the notes vault (e.g. `notes`) |
 | `NAS_NOTES_USER` | NAS user for notes share |
 | `NAS_NOTES_PASSWORD` | NAS password for notes share |
-| `SB_USER` | Silverbullet login in `username:password` format |
+| `SB_USER` | Silverbullet login in `username:password` format (e.g. `admin:yourpassword`) |
 
 **dashboard/.env**
 
