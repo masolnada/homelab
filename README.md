@@ -18,8 +18,6 @@ graph LR
             Caddy --> Jellyfin
             Caddy --> qBittorrent
             Caddy --> Radicale
-            Caddy --> Obsidian
-            Caddy --> CouchDB[CouchDB\nObsidian Sync]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -29,8 +27,6 @@ graph LR
             DockerProxy -.->|Docker socket| Jellyfin
             DockerProxy -.->|Docker socket| qBittorrent
             DockerProxy -.->|Docker socket| Radicale
-            DockerProxy -.->|Docker socket| Obsidian
-            DockerProxy -.->|Docker socket| CouchDB[CouchDB\nObsidian Sync]
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
@@ -59,7 +55,6 @@ graph LR
 - ⬇️ **Downloads** — qBittorrent download client
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
-- 📝 **Notes** — Obsidian web UI for note-taking (KasmVNC) + CouchDB for native client sync via Self-hosted LiveSync
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -88,8 +83,6 @@ graph LR
     Caddy -->|HTTP proxy_net| Jellyfin
     Caddy -->|HTTP proxy_net| qBittorrent
     Caddy -->|HTTP proxy_net| Radicale
-    Caddy -->|HTTP proxy_net| Obsidian
-    Caddy -->|HTTP proxy_net| CouchDB[CouchDB\nObsidian Sync]
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -231,23 +224,6 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
-**notes/.env**
-
-| Variable | Description |
-|---|---|
-| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
-| `PUID` | User ID for the linuxserver container (e.g. `1000`) |
-| `PGID` | Group ID for the linuxserver container (e.g. `1000`) |
-| `NAS_IP` | TrueNAS IP address |
-| `NAS_NOTES_SHARE` | SMB share name for the notes vault (e.g. `notes`) |
-| `NAS_NOTES_USER` | NAS user for notes share |
-| `NAS_NOTES_PASSWORD` | NAS password for notes share |
-| `NAS_BACKUP_SHARE` | SMB share name for backups |
-| `NAS_BACKUP_USER` | NAS user for backup share |
-| `NAS_BACKUP_PASSWORD` | NAS password for backup share |
-| `COUCHDB_USER` | CouchDB admin username (e.g. `admin`) |
-| `COUCHDB_PASSWORD` | CouchDB admin password |
-
 **dashboard/.env**
 
 | Variable | Description |
@@ -279,7 +255,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, downloads, finance, contacts, notes, and dashboard in order.
+This starts gateway, security, media, downloads, finance, contacts, and dashboard in order.
 
 ### 5. ✅ Verify
 

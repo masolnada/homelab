@@ -44,20 +44,6 @@
 		reverse_proxy radicale:5232
 	}
 
-	@notes host notes.{$DOMAIN}
-	handle @notes {
-		reverse_proxy obsidian:3000 {
-			transport http {
-				versions 1.1
-			}
-		}
-	}
-
-	@notes-sync host notes-sync.{$DOMAIN}
-	handle @notes-sync {
-		reverse_proxy couchdb:5984
-	}
-
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000
