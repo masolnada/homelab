@@ -1,0 +1,23 @@
+services:
+  silverbullet:
+    image: zefhemel/silverbullet:latest
+    container_name: silverbullet
+    restart: unless-stopped
+    environment:
+      - SB_USER=${SB_USER}
+    volumes:
+      - notes_space:/space
+    networks:
+      - proxy_net
+
+volumes:
+  notes_space:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_NOTES_SHARE}
+      o: addr=${NAS_IP},username=${NAS_NOTES_USER},password=${NAS_NOTES_PASSWORD},file_mode=0644,dir_mode=0755,uid=1000,gid=1000
+
+networks:
+  proxy_net:
+    external: true

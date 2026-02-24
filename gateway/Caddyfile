@@ -44,6 +44,11 @@
 		reverse_proxy radicale:5232
 	}
 
+	@notes host notes.{$DOMAIN}
+	handle @notes {
+		reverse_proxy silverbullet:3000
+	}
+
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000

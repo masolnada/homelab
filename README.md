@@ -18,6 +18,7 @@ graph LR
             Caddy --> Jellyfin
             Caddy --> qBittorrent
             Caddy --> Radicale
+            Caddy --> Silverbullet
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -27,6 +28,7 @@ graph LR
             DockerProxy -.->|Docker socket| Jellyfin
             DockerProxy -.->|Docker socket| qBittorrent
             DockerProxy -.->|Docker socket| Radicale
+            DockerProxy -.->|Docker socket| Silverbullet
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
@@ -55,6 +57,7 @@ graph LR
 - ⬇️ **Downloads** — qBittorrent download client
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
+- 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -83,6 +86,7 @@ graph LR
     Caddy -->|HTTP proxy_net| Jellyfin
     Caddy -->|HTTP proxy_net| qBittorrent
     Caddy -->|HTTP proxy_net| Radicale
+    Caddy -->|HTTP proxy_net| Silverbullet
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -91,6 +95,7 @@ graph LR
     qBittorrent -.-|CIFS LAN| NAS
     IHateMoney -.-|CIFS LAN| NAS
     Radicale -.-|CIFS LAN| NAS
+    Silverbullet -.-|CIFS LAN| NAS
 
     style CF fill:#f6821f,color:#fff
     style TS fill:#4a5568,color:#fff
@@ -223,6 +228,16 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_SHARE` | SMB share name for backups |
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
+
+**notes/.env**
+
+| Variable | Description |
+|---|---|
+| `NAS_IP` | TrueNAS IP address |
+| `NAS_NOTES_SHARE` | SMB share name for the notes vault (e.g. `notes`) |
+| `NAS_NOTES_USER` | NAS user for notes share |
+| `NAS_NOTES_PASSWORD` | NAS password for notes share |
+| `SB_USER` | Silverbullet login in `username:password` format |
 
 **dashboard/.env**
 
