@@ -19,7 +19,7 @@ graph LR
             Caddy --> qBittorrent
             Caddy --> Radicale
             Caddy --> Obsidian
-            Caddy --> CouchDB
+            Caddy --> CouchDB[CouchDB\nObsidian Sync]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -30,7 +30,7 @@ graph LR
             DockerProxy -.->|Docker socket| qBittorrent
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Obsidian
-            DockerProxy -.->|Docker socket| CouchDB
+            DockerProxy -.->|Docker socket| CouchDB[CouchDB\nObsidian Sync]
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
@@ -89,7 +89,7 @@ graph LR
     Caddy -->|HTTP proxy_net| qBittorrent
     Caddy -->|HTTP proxy_net| Radicale
     Caddy -->|HTTP proxy_net| Obsidian
-    Caddy -->|HTTP proxy_net| CouchDB
+    Caddy -->|HTTP proxy_net| CouchDB[CouchDB\nObsidian Sync]
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
