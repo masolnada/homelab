@@ -39,7 +39,7 @@ volumes:
     driver_opts:
       type: cifs
       device: //${NAS_IP}/${NAS_NOTES_SHARE}
-      o: addr=${NAS_IP},username=${NAS_NOTES_USER},password=${NAS_NOTES_PASSWORD},file_mode=0700,dir_mode=0700
+      o: addr=${NAS_IP},username=${NAS_NOTES_USER},password=${NAS_NOTES_PASSWORD},file_mode=0700,dir_mode=0700,uid=${PUID},gid=${PGID}
   nas_backup:
     driver: local
     driver_opts:
