@@ -46,7 +46,11 @@
 
 	@notes host notes.{$DOMAIN}
 	handle @notes {
-		reverse_proxy obsidian:3000
+		reverse_proxy obsidian:3000 {
+			transport http {
+				versions 1.1
+			}
+		}
 	}
 
 	@home host home.{$DOMAIN}
