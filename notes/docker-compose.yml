@@ -1,0 +1,21 @@
+services:
+  obsidian:
+    image: lscr.io/linuxserver/obsidian:latest
+    container_name: obsidian
+    restart: unless-stopped
+    shm_size: "1gb"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - obsidian_config:/config
+    networks:
+      - proxy_net
+
+volumes:
+  obsidian_config:
+
+networks:
+  proxy_net:
+    external: true

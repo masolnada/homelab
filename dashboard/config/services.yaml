@@ -76,3 +76,9 @@
         siteMonitor: http://radicale:5232
         server: my-docker
         container: radicale
+    - Obsidian:
+        icon: obsidian
+        href: https://notes.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://obsidian:3000
+        server: my-docker
+        container: obsidian
