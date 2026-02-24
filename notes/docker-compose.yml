@@ -16,7 +16,7 @@ services:
       - docker-volume-backup.stop-during-backup=obsidian
 
   couchdb:
-    image: ghcr.io/vrtmrz/couchdb:latest
+    image: couchdb:3
     container_name: couchdb
     restart: unless-stopped
     environment:
@@ -24,6 +24,7 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
     volumes:
       - couchdb_data:/opt/couchdb/data
+      - ./couchdb.ini:/opt/couchdb/etc/local.d/cors.ini:ro
     networks:
       - proxy_net
 
