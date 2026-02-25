@@ -19,6 +19,7 @@ graph LR
             Caddy --> qBittorrent
             Caddy --> Radicale
             Caddy --> Silverbullet
+            Caddy --> Immich[Immich]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -29,15 +30,18 @@ graph LR
             DockerProxy -.->|Docker socket| qBittorrent
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Silverbullet
+            DockerProxy -.->|Docker socket| Immich
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
+            Immich -.- ImmichBackup[Backup Sidecar]
         end
     end
 
     subgraph NAS["TrueNAS (separate machine)"]
         backups["/backups (SMB)"]
         media["/media (SMB)"]
+        photos["/photos (SMB)"]
     end
 
     Homepage -.->|API| TrueNAS
@@ -45,15 +49,17 @@ graph LR
     Backup -->|CIFS| backups
     IHMBackup -->|CIFS| backups
     RadBackup -->|CIFS| backups
+    ImmichBackup -->|CIFS| backups
     Navidrome -->|CIFS read-only| media
     Audiobookshelf -->|CIFS read-only| media
     Jellyfin -->|CIFS read-only| media
     qBittorrent -->|CIFS read-write| media
+    Immich -->|CIFS read-write| photos
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
-- 🎬 **Media** — Jellyfin (video streaming), Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts)
+- 🎬 **Media** — Jellyfin (video streaming), Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts), Immich (photo management)
 - ⬇️ **Downloads** — qBittorrent download client
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
@@ -62,13 +68,13 @@ graph LR
 
 ## 📂 NAS Share Structure
 
-All media services mount subfolders of a single SMB share on TrueNAS:
-
 ```
-media/            ← single SMB share
+media/            ← SMB share (Jellyfin, Navidrome, Audiobookshelf, qBittorrent)
 ├── audiobooks/   ← Audiobookshelf library
 ├── downloads/    ← qBittorrent download directory
 └── music/        ← Navidrome library
+
+photos/           ← SMB share (Immich upload library, read-write)
 ```
 
 ## 🌐 Network Flow
@@ -87,6 +93,7 @@ graph LR
     Caddy -->|HTTP proxy_net| qBittorrent
     Caddy -->|HTTP proxy_net| Radicale
     Caddy -->|HTTP proxy_net| Silverbullet
+    Caddy -->|HTTP proxy_net| Immich
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -96,6 +103,7 @@ graph LR
     IHateMoney -.-|CIFS LAN| NAS
     Radicale -.-|CIFS LAN| NAS
     Silverbullet -.-|CIFS LAN| NAS
+    Immich -.-|CIFS LAN| NAS
 
     style CF fill:#f6821f,color:#fff
     style TS fill:#4a5568,color:#fff
@@ -195,6 +203,16 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_MEDIA_SHARE` | SMB share name for the media share (e.g. `media`) |
 | `NAS_MEDIA_USER` | NAS user for media share |
 | `NAS_MEDIA_PASSWORD` | NAS password for media share |
+| `IMMICH_VERSION` | Immich image tag (default: `release`) |
+| `IMMICH_DB_USER` | Postgres username for Immich (e.g. `immich`) |
+| `IMMICH_DB_PASSWORD` | Postgres password — generate with `openssl rand -base64 32` |
+| `IMMICH_DB_NAME` | Postgres database name (e.g. `immich`) |
+| `NAS_PHOTOS_SHARE` | SMB share name for the Immich photo library (e.g. `photos`) |
+| `NAS_PHOTOS_USER` | NAS user for photos share (read-write) |
+| `NAS_PHOTOS_PASSWORD` | NAS password for photos share |
+| `NAS_BACKUP_SHARE` | SMB share name for backups |
+| `NAS_BACKUP_USER` | NAS user for backup share |
+| `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
 **downloads/.env**
 
@@ -289,8 +307,8 @@ docker ps
 
 Before starting the stacks, make sure your TrueNAS server has:
 
-1. **SMB shares** — a backup share for Vaultwarden/IHateMoney/Radicale, and a media share with subdirectories for music and downloads
-2. **Dedicated users** — a backup user (read/write) and a media user (read/write for qBittorrent, read-only for Navidrome/Jellyfin)
+1. **SMB shares** — a backup share for Vaultwarden/IHateMoney/Radicale/Immich, a media share with subdirectories for music and downloads, and a photos share for Immich
+2. **Dedicated users** — a backup user (read/write), a media user (read/write for qBittorrent, read-only for Navidrome/Jellyfin), and a photos user (read/write for Immich)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
 
 ## ➕ Adding a New Service
@@ -312,11 +330,15 @@ docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 
 ## 🔄 Backups
 
-Vaultwarden, IHateMoney, and Radicale are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
+Vaultwarden, IHateMoney, Radicale, and Immich are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
 
-- Pauses the application container during backup to prevent SQLite corruption
+- Pauses the application container during backup to prevent data corruption
 - Retains 30 days of backups with automatic rotation
 - Stores backups as `<service>-<timestamp>.tar.gz`
+
+**Immich backup strategy:**
+- The **postgres database** (metadata, albums, faces) is backed up daily via the backup sidecar to `backups/immich/` on the NAS
+- The **photo library** lives on the dedicated `photos` NAS share; incremental backups are handled at the NAS level via TrueNAS ZFS snapshots
 
 ## 📇 Contacts (CardDAV)
 

@@ -39,6 +39,86 @@ services:
     networks:
       - proxy_net
 
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    container_name: immich-server
+    restart: unless-stopped
+    depends_on:
+      - immich-redis
+      - immich-postgres
+    environment:
+      - DB_HOSTNAME=immich-postgres
+      - DB_USERNAME=${IMMICH_DB_USER}
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD}
+      - DB_DATABASE_NAME=${IMMICH_DB_NAME}
+      - REDIS_HOSTNAME=immich-redis
+      - TZ=${TIMEZONE}
+    volumes:
+      - nas_photos:/usr/src/app/upload
+    networks:
+      - proxy_net
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    container_name: immich-machine-learning
+    restart: unless-stopped
+    volumes:
+      - immich_model_cache:/cache
+    networks:
+      - proxy_net
+
+  immich-redis:
+    image: docker.io/valkey/valkey:9@sha256:930b41430fb727f533c5982fe509b6f04233e26d0f7354e04de4b0d5c706e44e
+    container_name: immich-redis
+    restart: unless-stopped
+    networks:
+      - proxy_net
+
+  immich-postgres:
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+    container_name: immich-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${IMMICH_DB_USER}
+      - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
+      - POSTGRES_DB=${IMMICH_DB_NAME}
+      - POSTGRES_INITDB_ARGS=--data-checksums
+      - TZ=${TIMEZONE}
+    volumes:
+      - immich_postgres:/var/lib/postgresql/data
+    networks:
+      - proxy_net
+    healthcheck:
+      test: >-
+        pg_isready --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" || exit 1;
+        Chksum="$$(psql --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" --tuples-only --no-align
+        --command='SELECT COALESCE(SUM(checksum_failures), 0) FROM pg_stat_database')";
+        echo "checksum failure count=$${Chksum}";
+        [ "$${Chksum}" = '0' ] || exit 1
+      interval: 5m
+      start_interval: 30s
+      start_period: 5m
+    labels:
+      - docker-volume-backup.stop-during-backup=immich-postgres
+
+  immich-backup:
+    image: offen/docker-volume-backup:latest@sha256:26df48fdb7bd32f114fc7420beae3960055ae1f40ba5ff3bfd787cb5f15fefa5
+    container_name: immich-backup
+    restart: unless-stopped
+    environment:
+      - BACKUP_CRON_EXPRESSION=0 3 * * *
+      - BACKUP_RETENTION_DAYS=30
+      - BACKUP_FILENAME=immich-%Y-%m-%dT%H-%M-%S.tar.gz
+      - BACKUP_ARCHIVE=/archive/immich
+      - TZ=${TIMEZONE}
+    volumes:
+      - immich_postgres:/backup/immich_postgres:ro
+      - nas_backup:/archive
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      - proxy_net
+
 volumes:
   jellyfin_config:
   navidrome_data:
@@ -50,6 +130,20 @@ volumes:
       type: cifs
       device: //${NAS_IP}/${NAS_MEDIA_SHARE}
       o: addr=${NAS_IP},username=${NAS_MEDIA_USER},password=${NAS_MEDIA_PASSWORD},file_mode=0664,dir_mode=0775
+  immich_model_cache:
+  immich_postgres:
+  nas_photos:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_PHOTOS_SHARE}
+      o: addr=${NAS_IP},username=${NAS_PHOTOS_USER},password=${NAS_PHOTOS_PASSWORD},file_mode=0664,dir_mode=0775
+  nas_backup:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_BACKUP_SHARE}
+      o: addr=${NAS_IP},username=${NAS_BACKUP_USER},password=${NAS_BACKUP_PASSWORD},file_mode=0700,dir_mode=0700
 
 networks:
   proxy_net:

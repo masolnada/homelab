@@ -49,6 +49,11 @@
 		reverse_proxy silverbullet:3000
 	}
 
+	@photos host photos.{$DOMAIN}
+	handle @photos {
+		reverse_proxy immich-server:2283
+	}
+
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000
