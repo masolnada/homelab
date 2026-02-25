@@ -50,6 +50,15 @@
         siteMonitor: http://audiobookshelf:80
         server: my-docker
         container: audiobookshelf
+    - Immich:
+        icon: immich
+        href: https://photos.{{HOMEPAGE_VAR_DOMAIN}}
+        widget:
+          type: immich
+          url: http://immich-server:2283
+          key: "{{HOMEPAGE_VAR_IMMICH_API_KEY}}"
+        server: my-docker
+        container: immich-server
     - qBittorrent:
         icon: qbittorrent
         href: https://download.{{HOMEPAGE_VAR_DOMAIN}}

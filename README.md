@@ -267,6 +267,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAVIDROME_SALT` | Random salt string (e.g. `openssl rand -hex 8`) |
 | `TRUENAS_IP` | TrueNAS IP or hostname (e.g. `nas.home.lab`) |
 | `TRUENAS_KEY` | TrueNAS API key — generate at TrueNAS UI → user icon → **API Keys** → **Add** |
+| `IMMICH_API_KEY` | Immich API key — generate at Immich UI → Account Settings → **API Keys** |
 
 > **Note**: The Navidrome widget uses the Subsonic API token auth scheme. The token is **not** your password — it's `md5(password + salt)`. Generate it with: `echo -n "yourpassword$(openssl rand -hex 8)" | md5sum`
 
