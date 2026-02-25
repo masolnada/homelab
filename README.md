@@ -75,6 +75,8 @@ media/            ← SMB share (Jellyfin, Navidrome, Audiobookshelf, qBittorren
 └── music/        ← Navidrome library
 
 photos/           ← SMB share (Immich upload library, read-write)
+
+notes/            ← SMB share (Silverbullet markdown vault, read-write)
 ```
 
 ## 🌐 Network Flow
