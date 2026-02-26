@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     volumes:
       - hashcards_data:/data
+      - ./deploy_key:/run/deploy_key:ro
     networks:
       - proxy_net
 

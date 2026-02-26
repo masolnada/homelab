@@ -4,3 +4,7 @@
 
 # Docker runtime
 docker-compose.override.yml
+
+# SSH deploy keys (generated per-server, never committed)
+deploy_key
+deploy_key.pub
