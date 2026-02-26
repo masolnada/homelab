@@ -16,6 +16,6 @@ python3 /proxy.py &
 
 # Keep hashcards running on internal port; proxy handles git pull on each request
 while true; do
-    hashcards drill --host 0.0.0.0 --port 8001 --open-browser false /data/decks
+    hashcards drill --host 0.0.0.0 --port 8001 --open-browser false /data/decks/cards
     sleep 5
 done

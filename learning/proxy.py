@@ -6,6 +6,7 @@ Pulls are debounced so rapid reloads don't hammer git.
 import http.server
 import urllib.request
 import urllib.error
+import os
 import subprocess
 import threading
 import time
@@ -13,7 +14,8 @@ import time
 HASHCARDS_PORT = 8001
 PROXY_PORT = 8000
 DECKS_PATH = "/data/decks"
-PULL_MIN_INTERVAL = 5  # seconds
+PULL_MIN_INTERVAL = 30  # seconds
+IGNORED_FILES = ["CLAUDE.md"]  # files pulled from git but excluded from the decks dir
 
 _last_pull = 0.0
 _pull_lock = threading.Lock()
