@@ -1,0 +1,44 @@
+services:
+  hashcards:
+    build: .
+    container_name: hashcards
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - hashcards_data:/data
+    networks:
+      - proxy_net
+    labels:
+      - docker-volume-backup.stop-during-backup=hashcards
+
+  backup:
+    image: offen/docker-volume-backup:latest
+    container_name: hashcards-backup
+    restart: unless-stopped
+    environment:
+      - BACKUP_CRON_EXPRESSION=0 3 * * *
+      - BACKUP_RETENTION_DAYS=30
+      - BACKUP_FILENAME=hashcards-%Y-%m-%dT%H-%M-%S.tar.gz
+      - BACKUP_ARCHIVE=/archive/hashcards
+      - TZ=${TIMEZONE}
+    volumes:
+      - hashcards_data:/backup/hashcards_data:ro
+      - nas_backup:/archive
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      - proxy_net
+
+volumes:
+  hashcards_data:
+  nas_backup:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //${NAS_IP}/${NAS_BACKUP_SHARE}
+      o: addr=${NAS_IP},username=${NAS_BACKUP_USER},password=${NAS_BACKUP_PASSWORD},file_mode=0700,dir_mode=0700
+
+networks:
+  proxy_net:
+    external: true

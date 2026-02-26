@@ -59,6 +59,11 @@
 		reverse_proxy homepage:3000
 	}
 
+	@memory host memory.{$DOMAIN}
+	handle @memory {
+		reverse_proxy hashcards:8000
+	}
+
 	handle {
 		abort
 	}
