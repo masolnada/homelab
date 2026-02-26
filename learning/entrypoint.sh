@@ -11,9 +11,11 @@ if [ ! -d /data/decks/.git ]; then
     git clone git@github.com:masolnada/flashcards.git /data/decks
 fi
 
-# Pull latest decks and run hashcards on each cycle
+# Start pull-on-request proxy in the background
+python3 /proxy.py &
+
+# Keep hashcards running on internal port; proxy handles git pull on each request
 while true; do
-    git -C /data/decks pull
-    hashcards drill --host 0.0.0.0 --open-browser false /data/decks
+    hashcards drill --host 0.0.0.0 --port 8001 --open-browser false /data/decks
     sleep 5
 done
