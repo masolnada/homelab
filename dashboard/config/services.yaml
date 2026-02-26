@@ -95,6 +95,5 @@
     - Hashcards:
         icon: si-anki
         href: https://memory.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://hashcards:8000
         server: my-docker
         container: hashcards
