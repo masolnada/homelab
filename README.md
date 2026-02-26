@@ -37,7 +37,6 @@ graph LR
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
             Immich -.- ImmichBackup[Backup Sidecar]
-            Hashcards -.- HashcardsBackup[Backup Sidecar]
         end
     end
 
@@ -53,7 +52,7 @@ graph LR
     IHMBackup -->|CIFS| backups
     RadBackup -->|CIFS| backups
     ImmichBackup -->|CIFS| backups
-    HashcardsBackup -->|CIFS| backups
+
     Navidrome -->|CIFS read-only| media
     Audiobookshelf -->|CIFS read-only| media
     Jellyfin -->|CIFS read-only| media
@@ -68,7 +67,7 @@ graph LR
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share
-- 🧠 **Hashcards** — Spaced repetition flashcard system with daily backup to TrueNAS
+- 🧠 **Hashcards** — Spaced repetition flashcard system; decks managed as a git repository
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -264,16 +263,6 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_NOTES_USER` | NAS user for notes share |
 | `NAS_NOTES_PASSWORD` | NAS password for notes share |
 | `SB_USER` | Silverbullet login in `username:password` format (e.g. `admin:yourpassword`) |
-
-**learning/.env**
-
-| Variable | Description |
-|---|---|
-| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
-| `NAS_IP` | TrueNAS IP address |
-| `NAS_BACKUP_SHARE` | SMB share name for backups |
-| `NAS_BACKUP_USER` | NAS user for backup share |
-| `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
 **dashboard/.env**
 
