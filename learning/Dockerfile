@@ -9,4 +9,4 @@ RUN apt-get update && apt-get install -y libsqlite3-0 ca-certificates && rm -rf 
 COPY --from=builder /build/target/release/hashcards /usr/local/bin/hashcards
 WORKDIR /data
 EXPOSE 8000
-CMD ["hashcards", "drill", "."]
+CMD ["hashcards", "drill", "--host", "0.0.0.0", "--open-browser", "false", "."]
