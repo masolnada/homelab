@@ -12,6 +12,3 @@ layout:
   Services:
     style: row
     columns: 3
-  Learning:
-    style: row
-    columns: 3

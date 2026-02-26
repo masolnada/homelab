@@ -68,7 +68,7 @@ graph LR
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share
-- 🧠 **Learning** — Hashcards spaced repetition flashcard system with daily backup to TrueNAS
+- 🧠 **Hashcards** — Spaced repetition flashcard system with daily backup to TrueNAS
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure

@@ -92,8 +92,6 @@
         siteMonitor: http://silverbullet:3000
         server: my-docker
         container: silverbullet
-
-- Learning:
     - Hashcards:
         icon: si-anki
         href: https://memory.{{HOMEPAGE_VAR_DOMAIN}}
