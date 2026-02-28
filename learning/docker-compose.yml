@@ -9,8 +9,24 @@ services:
     networks:
       - proxy_net
 
+  markcards:
+    image: ghcr.io/masolnada/markcards:latest
+    container_name: markcards
+    restart: unless-stopped
+    environment:
+      - GITHUB_REPO=${MARKCARDS_GITHUB_REPO}
+      - GITHUB_TOKEN=${MARKCARDS_GITHUB_TOKEN:-}
+      - GITHUB_BRANCH=${MARKCARDS_GITHUB_BRANCH:-main}
+      - GITHUB_PATH=${MARKCARDS_GITHUB_PATH:-}
+      - SYNC_TTL_MS=${MARKCARDS_SYNC_TTL_MS:-60000}
+    volumes:
+      - markcards_data:/data
+    networks:
+      - proxy_net
+
 volumes:
   hashcards_data:
+  markcards_data:
 
 networks:
   proxy_net:

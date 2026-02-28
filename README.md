@@ -21,6 +21,7 @@ graph LR
             Caddy --> Silverbullet
             Caddy --> Immich[Immich]
             Caddy --> Hashcards
+            Caddy --> Markcards[Markcards]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -33,6 +34,7 @@ graph LR
             DockerProxy -.->|Docker socket| Silverbullet
             DockerProxy -.->|Docker socket| Immich
             DockerProxy -.->|Docker socket| Hashcards
+            DockerProxy -.->|Docker socket| Markcards
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
@@ -67,7 +69,7 @@ graph LR
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share
-- 🧠 **Hashcards** — Spaced repetition flashcard system; decks managed as a git repository
+- 🧠 **Learning** — Spaced repetition flashcard apps; Hashcards (decks via git) and Markcards (FSRS 4.5 scheduler, decks synced from `masolnada/flashcards` on GitHub)
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -101,6 +103,7 @@ graph LR
     Caddy -->|HTTP proxy_net| Silverbullet
     Caddy -->|HTTP proxy_net| Immich
     Caddy -->|HTTP proxy_net| Hashcards
+    Caddy -->|HTTP proxy_net| Markcards
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -263,6 +266,16 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_NOTES_USER` | NAS user for notes share |
 | `NAS_NOTES_PASSWORD` | NAS password for notes share |
 | `SB_USER` | Silverbullet login in `username:password` format (e.g. `admin:yourpassword`) |
+
+**learning/.env**
+
+| Variable | Description |
+|---|---|
+| `MARKCARDS_GITHUB_REPO` | GitHub repo for decks in `owner/repo` format (e.g. `masolnada/flashcards`) |
+| `MARKCARDS_GITHUB_TOKEN` | Personal access token — leave empty for public repos |
+| `MARKCARDS_GITHUB_BRANCH` | Branch to sync from (default: `main`) |
+| `MARKCARDS_GITHUB_PATH` | Subdirectory within repo (e.g. `cards`) |
+| `MARKCARDS_SYNC_TTL_MS` | GitHub re-fetch interval in ms (default: `60000`) |
 
 **dashboard/.env**
 

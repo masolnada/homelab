@@ -64,6 +64,11 @@
 		reverse_proxy hashcards:8000
 	}
 
+	@cards host cards.{$DOMAIN}
+	handle @cards {
+		reverse_proxy markcards:3000
+	}
+
 	handle {
 		abort
 	}
