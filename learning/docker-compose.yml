@@ -10,7 +10,7 @@ services:
       - proxy_net
 
   markcards:
-    image: ghcr.io/masolnada/markcards:latest
+    build: https://github.com/masolnada/markcards.git
     container_name: markcards
     restart: unless-stopped
     environment:
