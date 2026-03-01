@@ -1,14 +1,4 @@
 services:
-  hashcards:
-    build: .
-    container_name: hashcards
-    restart: unless-stopped
-    volumes:
-      - hashcards_data:/data
-      - ./deploy_key:/run/deploy_key:ro
-    networks:
-      - proxy_net
-
   markcards:
     build: https://github.com/masolnada/markcards.git
     container_name: markcards
@@ -25,7 +15,6 @@ services:
       - proxy_net
 
 volumes:
-  hashcards_data:
   markcards_data:
 
 networks:
