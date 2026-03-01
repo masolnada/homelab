@@ -9,8 +9,10 @@ services:
       - GITHUB_BRANCH=${MARKCARDS_GITHUB_BRANCH:-main}
       - GITHUB_PATH=${MARKCARDS_GITHUB_PATH:-}
       - SYNC_TTL_MS=${MARKCARDS_SYNC_TTL_MS:-60000}
+      - SETTINGS_PATH=/config/settings.json
     volumes:
       - markcards_data:/data
+      - ./settings.json:/config/settings.json:ro
     networks:
       - proxy_net
 
