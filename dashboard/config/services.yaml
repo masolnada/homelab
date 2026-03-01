@@ -97,3 +97,9 @@
         href: https://memory.{{HOMEPAGE_VAR_DOMAIN}}
         server: my-docker
         container: hashcards
+    - Markcards:
+        icon: si-files
+        href: https://cards.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://markcards:3000
+        server: my-docker
+        container: markcards
