@@ -1,6 +1,9 @@
 services:
   markcards:
-    build: https://github.com/masolnada/markcards.git
+    build:
+      context: https://github.com/masolnada/markcards.git
+      args:
+        APP_VERSION: ${APP_VERSION:-dev}
     container_name: markcards
     restart: unless-stopped
     environment:
