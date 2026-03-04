@@ -61,7 +61,7 @@
 
 	@memory host memory.{$DOMAIN}
 	handle @memory {
-		reverse_proxy markcards:3000
+		reverse_proxy markcards-caddy:80
 	}
 
 	handle {
