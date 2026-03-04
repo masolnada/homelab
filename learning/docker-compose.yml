@@ -6,8 +6,8 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
     networks:
-      - proxy_net
-      - proxy_net
+      - internal_net
+      - internal_net
     depends_on:
       - server
       - client
@@ -31,7 +31,7 @@ services:
       - markcards_data:/data
       - ./settings.json:/config/settings.json:ro
     networks:
-      - proxy_net
+      - internal_net
     labels:
       - docker-volume-backup.stop-during-backup=markcards
 
@@ -44,7 +44,7 @@ services:
     container_name: markcards-client
     restart: unless-stopped
     networks:
-      - proxy_net
+      - internal_net
 
   backup:
     image: offen/docker-volume-backup:latest@sha256:26df48fdb7bd32f114fc7420beae3960055ae1f40ba5ff3bfd787cb5f15fefa5
@@ -62,7 +62,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     networks:
-      - proxy_net
+      - internal_net
 
 volumes:
   markcards_data:
@@ -74,6 +74,6 @@ volumes:
       o: addr=${NAS_IP},username=${NAS_BACKUP_USER},password=${NAS_BACKUP_PASSWORD},file_mode=0700,dir_mode=0700
 
 networks:
-  proxy_net:
+  internal_net:
     external: true
-  proxy_net:
+  internal_net:
