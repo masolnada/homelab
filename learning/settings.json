@@ -1,5 +1,5 @@
 {
   "maxNewPerDay": 10,
   "learningSteps": [1, 10, 1440],
-  "relearningSteps": [10]
+  "relearningSteps": [10, 1440]
 }

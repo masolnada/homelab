@@ -6,7 +6,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
     networks:
-      - internal_net
+      - proxy_net
       - internal_net
     depends_on:
       - server
@@ -62,7 +62,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     networks:
-      - internal_net
+      - proxy_net
 
 volumes:
   markcards_data:
@@ -74,6 +74,6 @@ volumes:
       o: addr=${NAS_IP},username=${NAS_BACKUP_USER},password=${NAS_BACKUP_PASSWORD},file_mode=0700,dir_mode=0700
 
 networks:
-  internal_net:
+  proxy_net:
     external: true
   internal_net:
