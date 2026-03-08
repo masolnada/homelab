@@ -94,7 +94,4 @@
         container: silverbullet
     - Markcards:
         icon: si-anki
-        href: https://memory.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://markcards:3000
-        server: my-docker
-        container: markcards
+        href: https://markcards.dev.marcsolanadal.com
