@@ -53,6 +53,8 @@ services:
       - DB_DATABASE_NAME=${IMMICH_DB_NAME}
       - REDIS_HOSTNAME=immich-redis
       - TZ=${TIMEZONE}
+    ports:
+      - "2283:2283"
     volumes:
       - nas_photos:/usr/src/app/upload
     networks:
