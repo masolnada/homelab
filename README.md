@@ -69,13 +69,13 @@ graph LR
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share
-- 📄 **Documents** — Paperless-ngx document management (OCR disabled), database stored on NAS documents share
+- 📄 **Documents** — Paperless-ngx document management (OCR disabled), managed documents stored on NAS documents share
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
 
 ```
-documents/        ← SMB share (Paperless-ngx data — SQLite DB, search index)
+documents/        ← SMB share (Paperless-ngx media — managed document files)
 
 media/            ← SMB share (Jellyfin, Navidrome, Audiobookshelf, qBittorrent)
 ├── audiobooks/   ← Audiobookshelf library
