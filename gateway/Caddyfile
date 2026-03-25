@@ -59,6 +59,11 @@
 		reverse_proxy paperless-ngx:8000
 	}
 
+	@books host books.{$DOMAIN}
+	handle @books {
+		reverse_proxy kavita:5000
+	}
+
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000

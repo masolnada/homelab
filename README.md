@@ -21,6 +21,7 @@ graph LR
             Caddy --> Silverbullet
             Caddy --> Immich[Immich]
             Caddy --> Paperless[Paperless-ngx]
+            Caddy --> Kavita
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -33,6 +34,7 @@ graph LR
             DockerProxy -.->|Docker socket| Silverbullet
             DockerProxy -.->|Docker socket| Immich
             DockerProxy -.->|Docker socket| Paperless
+            DockerProxy -.->|Docker socket| Kavita
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
@@ -60,6 +62,7 @@ graph LR
     qBittorrent -->|CIFS read-write| media
     Immich -->|CIFS read-write| photos
     Paperless -->|CIFS read-write| documents
+    Kavita -->|CIFS read-only| documents
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
@@ -69,13 +72,13 @@ graph LR
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share
-- 📄 **Documents** — Paperless-ngx document management (OCR disabled), managed documents stored on NAS documents share
+- 📄 **Documents** — Paperless-ngx document management (OCR disabled), managed documents stored on NAS documents share; Kavita ebook/PDF reading server, library served from a subfolder of the same documents share
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
 
 ```
-documents/        ← SMB share (Paperless-ngx media — managed document files)
+documents/        ← SMB share (Paperless-ngx media — managed document files; Kavita library — read-only)
 
 media/            ← SMB share (Jellyfin, Navidrome, Audiobookshelf, qBittorrent)
 ├── audiobooks/   ← Audiobookshelf library
@@ -105,6 +108,7 @@ graph LR
     Caddy -->|HTTP proxy_net| Silverbullet
     Caddy -->|HTTP proxy_net| Immich
     Caddy -->|HTTP proxy_net| Paperless[Paperless-ngx]
+    Caddy -->|HTTP proxy_net| Kavita
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -116,6 +120,7 @@ graph LR
     Silverbullet -.-|CIFS LAN| NAS
     Immich -.-|CIFS LAN| NAS
     Paperless -.-|CIFS LAN| NAS
+    Kavita -.-|CIFS LAN| NAS
 
     style CF fill:#f6821f,color:#fff
     style TS fill:#4a5568,color:#fff
@@ -281,6 +286,8 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `PAPERLESS_SECRET_KEY` | Secret key — generate with `openssl rand -base64 48` |
 | `PAPERLESS_ADMIN_USER` | Admin username (e.g. `admin`) |
 | `PAPERLESS_ADMIN_PASSWORD` | Admin password |
+
+> **Note**: After starting the documents stack for the first time, open `books.<DOMAIN>` and add a library in the Kavita admin UI pointing to the subfolder of `/media` where your books/PDFs are stored (e.g. `/media/books`).
 
 **dashboard/.env**
 

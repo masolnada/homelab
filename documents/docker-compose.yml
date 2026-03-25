@@ -32,11 +32,22 @@ services:
     networks:
       - proxy_net
 
+  kavita:
+    image: ghcr.io/kareadita/kavita:latest
+    container_name: kavita
+    restart: unless-stopped
+    volumes:
+      - kavita_config:/kavita/config
+      - nas_documents:/media:ro
+    networks:
+      - proxy_net
+
 volumes:
   paperless_data:
   paperless_export:
   paperless_consume:
   paperless_redis:
+  kavita_config:
   nas_documents:
     driver: local
     driver_opts:
