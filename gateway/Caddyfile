@@ -54,6 +54,11 @@
 		reverse_proxy immich-server:2283
 	}
 
+	@docs host docs.{$DOMAIN}
+	handle @docs {
+		reverse_proxy paperless-ngx:8000
+	}
+
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000

@@ -20,6 +20,7 @@ graph LR
             Caddy --> Radicale
             Caddy --> Silverbullet
             Caddy --> Immich[Immich]
+            Caddy --> Paperless[Paperless-ngx]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -31,6 +32,7 @@ graph LR
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Silverbullet
             DockerProxy -.->|Docker socket| Immich
+            DockerProxy -.->|Docker socket| Paperless
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
@@ -42,6 +44,7 @@ graph LR
         backups["/backups (SMB)"]
         media["/media (SMB)"]
         photos["/photos (SMB)"]
+        documents["/documents (SMB)"]
     end
 
     Homepage -.->|API| TrueNAS
@@ -56,6 +59,7 @@ graph LR
     Jellyfin -->|CIFS read-only| media
     qBittorrent -->|CIFS read-write| media
     Immich -->|CIFS read-write| photos
+    Paperless -->|CIFS read-write| documents
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
@@ -65,11 +69,14 @@ graph LR
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share
+- 📄 **Documents** — Paperless-ngx document management (OCR disabled), database stored on NAS documents share
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
 
 ```
+documents/        ← SMB share (Paperless-ngx data — SQLite DB, search index)
+
 media/            ← SMB share (Jellyfin, Navidrome, Audiobookshelf, qBittorrent)
 ├── audiobooks/   ← Audiobookshelf library
 ├── downloads/    ← qBittorrent download directory
@@ -97,6 +104,7 @@ graph LR
     Caddy -->|HTTP proxy_net| Radicale
     Caddy -->|HTTP proxy_net| Silverbullet
     Caddy -->|HTTP proxy_net| Immich
+    Caddy -->|HTTP proxy_net| Paperless[Paperless-ngx]
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -107,6 +115,7 @@ graph LR
     Radicale -.-|CIFS LAN| NAS
     Silverbullet -.-|CIFS LAN| NAS
     Immich -.-|CIFS LAN| NAS
+    Paperless -.-|CIFS LAN| NAS
 
     style CF fill:#f6821f,color:#fff
     style TS fill:#4a5568,color:#fff
@@ -260,6 +269,19 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_NOTES_PASSWORD` | NAS password for notes share |
 | `SB_USER` | Silverbullet login in `username:password` format (e.g. `admin:yourpassword`) |
 
+**documents/.env**
+
+| Variable | Description |
+|---|---|
+| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
+| `NAS_IP` | TrueNAS IP address |
+| `NAS_DOCUMENTS_SHARE` | SMB share name for the documents share (e.g. `documents`) |
+| `NAS_DOCUMENTS_USER` | NAS user for documents share |
+| `NAS_DOCUMENTS_PASSWORD` | NAS password for documents share |
+| `PAPERLESS_SECRET_KEY` | Secret key — generate with `openssl rand -base64 48` |
+| `PAPERLESS_ADMIN_USER` | Admin username (e.g. `admin`) |
+| `PAPERLESS_ADMIN_PASSWORD` | Admin password |
+
 **dashboard/.env**
 
 | Variable | Description |
@@ -292,7 +314,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, downloads, finance, contacts, notes, and dashboard in order.
+This starts gateway, security, media, downloads, finance, contacts, notes, documents, and dashboard in order.
 
 ### 5. ✅ Verify
 
