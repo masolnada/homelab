@@ -11,9 +11,9 @@ services:
       - PAPERLESS_ADMIN_USER=${PAPERLESS_ADMIN_USER}
       - PAPERLESS_ADMIN_PASSWORD=${PAPERLESS_ADMIN_PASSWORD}
       - PAPERLESS_TIME_ZONE=${TIMEZONE}
-      - PAPERLESS_OCR_MODE=skip
-      - PAPERLESS_TASK_WORKERS=1
-      - PAPERLESS_THREADS_PER_WORKER=1
+      - PAPERLESS_OCR_MODE=force
+      - PAPERLESS_TASK_WORKERS=2
+      - PAPERLESS_THREADS_PER_WORKER=2
       - PAPERLESS_URL=${PAPERLESS_URL}
       - PAPERLESS_FILENAME_FORMAT={{ created_year }}/{{ correspondent|lower|replace(" ","-") }}/{{ created }}-{{ correspondent|lower|replace(" ","-") }}-{{ title|lower|replace(" ","-") }}
     volumes:
