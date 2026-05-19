@@ -309,6 +309,39 @@ Then reload Caddy:
 docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
+## 📸 Immich Public Sharing
+
+`immich-public-proxy` exposes public album/photo share links at `share.<DOMAIN>` without requiring Immich credentials. Traffic reaches it via a Cloudflare Tunnel (`cloudflared` sidecar in the gateway stack), so no inbound ports are opened on the router.
+
+### Setup
+
+**1. Create a Cloudflare Tunnel**
+
+Go to [Cloudflare Zero Trust](https://one.dash.cloudflare.com) → Networks → Tunnels → Create a tunnel. Copy the token from the connector install step and add it to `gateway/.env`:
+
+```
+CLOUDFLARE_TUNNEL_TOKEN=<token>
+```
+
+**2. Configure a public hostname**
+
+In the tunnel → **Published applications** → Add:
+
+| Field | Value |
+|---|---|
+| Subdomain | `share` |
+| Domain | your domain |
+| Service type | `HTTP` |
+| URL | `immich-public-proxy:3000` |
+
+Cloudflare automatically creates a DNS record for `share.<DOMAIN>` pointing to the tunnel. The existing wildcard A record (Tailscale) is overridden for this subdomain only.
+
+**3. Set the external domain in Immich**
+
+Immich admin → Server Settings → External domain → `https://share.<DOMAIN>`
+
+This makes Immich embed the proxy URL in generated share links.
+
 ## 🔄 Backups
 
 Vaultwarden, IHateMoney, Radicale, and Immich are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
