@@ -29,16 +29,6 @@
 		reverse_proxy ihatemoney:8000
 	}
 
-	@watch host watch.{$DOMAIN}
-	handle @watch {
-		reverse_proxy jellyfin:8096
-	}
-
-	@download host download.{$DOMAIN}
-	handle @download {
-		reverse_proxy qbittorrent:8080
-	}
-
 	@contacts host contacts.{$DOMAIN}
 	handle @contacts {
 		reverse_proxy radicale:5232
@@ -52,16 +42,6 @@
 	@photos host photos.{$DOMAIN}
 	handle @photos {
 		reverse_proxy immich-server:2283
-	}
-
-	@docs host docs.{$DOMAIN}
-	handle @docs {
-		reverse_proxy paperless-ngx:8000
-	}
-
-	@books host books.{$DOMAIN}
-	handle @books {
-		reverse_proxy kavita:5000
 	}
 
 	@home host home.{$DOMAIN}

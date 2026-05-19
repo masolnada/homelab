@@ -15,26 +15,18 @@ graph LR
             Caddy --> Navidrome
             Caddy --> Audiobookshelf
             Caddy --> IHateMoney
-            Caddy --> Jellyfin
-            Caddy --> qBittorrent
             Caddy --> Radicale
             Caddy --> Silverbullet
             Caddy --> Immich[Immich]
-            Caddy --> Paperless[Paperless-ngx]
-            Caddy --> Kavita
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
             DockerProxy -.->|Docker socket| Navidrome
             DockerProxy -.->|Docker socket| Audiobookshelf
             DockerProxy -.->|Docker socket| IHateMoney
-            DockerProxy -.->|Docker socket| Jellyfin
-            DockerProxy -.->|Docker socket| qBittorrent
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Silverbullet
             DockerProxy -.->|Docker socket| Immich
-            DockerProxy -.->|Docker socket| Paperless
-            DockerProxy -.->|Docker socket| Kavita
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
@@ -46,7 +38,6 @@ graph LR
         backups["/backups (SMB)"]
         media["/media (SMB)"]
         photos["/photos (SMB)"]
-        documents["/documents (SMB)"]
     end
 
     Homepage -.->|API| TrueNAS
@@ -58,31 +49,22 @@ graph LR
 
     Navidrome -->|CIFS read-only| media
     Audiobookshelf -->|CIFS read-only| media
-    Jellyfin -->|CIFS read-only| media
-    qBittorrent -->|CIFS read-write| media
     Immich -->|CIFS read-write| photos
-    Paperless -->|CIFS read-write| documents
-    Kavita -->|CIFS read-only| documents
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
-- 🎬 **Media** — Jellyfin (video streaming), Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts), Immich (photo management)
-- ⬇️ **Downloads** — qBittorrent download client
+- 🎬 **Media** — Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts), Immich (photo management)
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share
-- 📄 **Documents** — Paperless-ngx document management (OCR disabled), managed documents stored on NAS documents share; Kavita ebook/PDF reading server, library served from a subfolder of the same documents share
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
 
 ```
-documents/        ← SMB share (Paperless-ngx media — managed document files; Kavita library — read-only)
-
-media/            ← SMB share (Jellyfin, Navidrome, Audiobookshelf, qBittorrent)
+media/            ← SMB share (Navidrome, Audiobookshelf)
 ├── audiobooks/   ← Audiobookshelf library
-├── downloads/    ← qBittorrent download directory
 └── music/        ← Navidrome library
 
 photos/           ← SMB share (Immich upload library, read-write)
@@ -102,25 +84,17 @@ graph LR
     Caddy -->|HTTP proxy_net| Navidrome
     Caddy -->|HTTP proxy_net| Audiobookshelf
     Caddy -->|HTTP proxy_net| IHateMoney
-    Caddy -->|HTTP proxy_net| Jellyfin
-    Caddy -->|HTTP proxy_net| qBittorrent
     Caddy -->|HTTP proxy_net| Radicale
     Caddy -->|HTTP proxy_net| Silverbullet
     Caddy -->|HTTP proxy_net| Immich
-    Caddy -->|HTTP proxy_net| Paperless[Paperless-ngx]
-    Caddy -->|HTTP proxy_net| Kavita
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
     Audiobookshelf -.-|CIFS LAN| NAS
-    Jellyfin -.-|CIFS LAN| NAS
-    qBittorrent -.-|CIFS LAN| NAS
     IHateMoney -.-|CIFS LAN| NAS
     Radicale -.-|CIFS LAN| NAS
     Silverbullet -.-|CIFS LAN| NAS
     Immich -.-|CIFS LAN| NAS
-    Paperless -.-|CIFS LAN| NAS
-    Kavita -.-|CIFS LAN| NAS
 
     style CF fill:#f6821f,color:#fff
     style TS fill:#4a5568,color:#fff
@@ -231,18 +205,6 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
-**downloads/.env**
-
-| Variable | Description |
-|---|---|
-| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
-| `PUID` | User ID for linuxserver containers (e.g. `1000`) |
-| `PGID` | Group ID for linuxserver containers (e.g. `1000`) |
-| `NAS_IP` | TrueNAS IP address |
-| `NAS_MEDIA_SHARE` | SMB share name for the media share (e.g. `media`) |
-| `NAS_MEDIA_USER` | NAS user for media share |
-| `NAS_MEDIA_PASSWORD` | NAS password for media share |
-
 **finance/.env**
 
 | Variable | Description |
@@ -273,21 +235,6 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_NOTES_USER` | NAS user for notes share |
 | `NAS_NOTES_PASSWORD` | NAS password for notes share |
 | `SB_USER` | Silverbullet login in `username:password` format (e.g. `admin:yourpassword`) |
-
-**documents/.env**
-
-| Variable | Description |
-|---|---|
-| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
-| `NAS_IP` | TrueNAS IP address |
-| `NAS_DOCUMENTS_SHARE` | SMB share name for the documents share (e.g. `documents`) |
-| `NAS_DOCUMENTS_USER` | NAS user for documents share |
-| `NAS_DOCUMENTS_PASSWORD` | NAS password for documents share |
-| `PAPERLESS_SECRET_KEY` | Secret key — generate with `openssl rand -base64 48` |
-| `PAPERLESS_ADMIN_USER` | Admin username (e.g. `admin`) |
-| `PAPERLESS_ADMIN_PASSWORD` | Admin password |
-
-> **Note**: After starting the documents stack for the first time, open `books.<DOMAIN>` and add a library in the Kavita admin UI pointing to the subfolder of `/media` where your books/PDFs are stored (e.g. `/media/books`).
 
 **dashboard/.env**
 
@@ -321,7 +268,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, downloads, finance, contacts, notes, documents, and dashboard in order.
+This starts gateway, security, media, finance, contacts, notes, and dashboard in order.
 
 ### 5. ✅ Verify
 
@@ -340,8 +287,8 @@ docker ps
 
 Before starting the stacks, make sure your TrueNAS server has:
 
-1. **SMB shares** — a backup share for Vaultwarden/IHateMoney/Radicale/Immich, a media share with subdirectories for music and downloads, and a photos share for Immich
-2. **Dedicated users** — a backup user (read/write), a media user (read/write for qBittorrent, read-only for Navidrome/Jellyfin), and a photos user (read/write for Immich)
+1. **SMB shares** — a backup share for Vaultwarden/IHateMoney/Radicale/Immich, a media share with subdirectories for music and audiobooks, and a photos share for Immich
+2. **Dedicated users** — a backup user (read/write), a media user (read-only for Navidrome/Audiobookshelf), and a photos user (read/write for Immich)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
 
 ## ➕ Adding a New Service

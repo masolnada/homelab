@@ -27,12 +27,6 @@
         href: https://192.168.10.1/
 
 - Media:
-    - Jellyfin:
-        icon: jellyfin
-        href: https://watch.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://jellyfin:8096
-        server: my-docker
-        container: jellyfin
     - Navidrome:
         icon: navidrome
         href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
@@ -60,12 +54,6 @@
           version: 2
         server: my-docker
         container: immich-server
-    - qBittorrent:
-        icon: qbittorrent
-        href: https://download.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://qbittorrent:8080
-        server: my-docker
-        container: qbittorrent
 
 - Services:
     - Vaultwarden:
@@ -92,18 +80,6 @@
         siteMonitor: http://silverbullet:3000
         server: my-docker
         container: silverbullet
-    - Paperless-ngx:
-        icon: paperless-ngx
-        href: https://docs.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://paperless-ngx:8000
-        server: my-docker
-        container: paperless-ngx
-    - Kavita:
-        icon: kavita
-        href: https://books.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://kavita:5000
-        server: my-docker
-        container: kavita
     - Markcards:
         icon: si-anki
         href: https://markcards.dev.marcsolanadal.com
