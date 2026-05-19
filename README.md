@@ -17,7 +17,8 @@ graph LR
             Caddy --> IHateMoney
             Caddy --> Radicale
             Caddy --> Silverbullet
-            Caddy --> Immich[Immich]
+            Caddy --> ImmichProxy[Immich Public Proxy]
+            ImmichProxy --> Immich[Immich]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
@@ -54,7 +55,7 @@ graph LR
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
-- 🎬 **Media** — Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts), Immich (photo management)
+- 🎬 **Media** — Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts), Immich (photo management), immich-public-proxy (public album sharing at `share.<DOMAIN>`)
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share

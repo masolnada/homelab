@@ -48,6 +48,16 @@ services:
     networks:
       - proxy_net
 
+  immich-public-proxy:
+    image: ghcr.io/alangrainger/immich-public-proxy:latest
+    container_name: immich-public-proxy
+    restart: unless-stopped
+    environment:
+      - IMMICH_URL=http://immich-server:2283
+      - TZ=${TIMEZONE}
+    networks:
+      - proxy_net
+
   immich-machine-learning:
     image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
     container_name: immich-machine-learning

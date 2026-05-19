@@ -44,6 +44,11 @@
 		reverse_proxy immich-server:2283
 	}
 
+	@share host share.{$DOMAIN}
+	handle @share {
+		reverse_proxy immich-public-proxy:3000
+	}
+
 	@home host home.{$DOMAIN}
 	handle @home {
 		reverse_proxy homepage:3000
