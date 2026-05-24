@@ -1,0 +1,96 @@
+services:
+
+  # ─── Hermes Agent ────────────────────────────────────────────────────────────
+  hermes:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes
+    restart: unless-stopped
+    command: gateway run
+    ports:
+      - "8642:8642"   # gateway API
+      - "9119:9119"   # dashboard
+    volumes:
+      - ~/.hermes:/opt/data
+    environment:
+      - HERMES_DASHBOARD=1
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GLM_API_KEY=${GLM_API_KEY}
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+    networks:
+      - gordita
+
+  # ─── Honcho ──────────────────────────────────────────────────────────────────
+  honcho-db:
+    image: pgvector/pgvector:pg17
+    container_name: honcho-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${HONCHO_DB_USER:-honcho}
+      POSTGRES_PASSWORD: ${HONCHO_DB_PASSWORD:?required}
+      POSTGRES_DB: ${HONCHO_DB_NAME:-honcho}
+    volumes:
+      - honcho_db_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - gordita
+
+  honcho-redis:
+    image: redis:7-alpine
+    container_name: honcho-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - gordita
+
+  honcho:
+    build:
+      context: ./honcho
+      dockerfile: Dockerfile
+    container_name: honcho-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${HONCHO_DB_USER:-honcho}:${HONCHO_DB_PASSWORD}@honcho-db:5432/${HONCHO_DB_NAME:-honcho}
+      REDIS_URL: redis://honcho-redis:6379
+      AUTH_USE_AUTH: ${HONCHO_AUTH:-false}
+      LLM_OPENAI_API_KEY: ${ANTHROPIC_API_KEY}
+      LLM_OPENAI_API_URL: https://api.anthropic.com/v1
+      LLM_DEFAULT_MODEL: ${HONCHO_LLM_MODEL:-claude-sonnet-4-6}
+    depends_on:
+      - honcho-db
+      - honcho-redis
+    networks:
+      - gordita
+
+  honcho-deriver:
+    build:
+      context: ./honcho
+      dockerfile: Dockerfile
+    container_name: honcho-deriver
+    restart: unless-stopped
+    command: ["python", "-m", "deriver"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${HONCHO_DB_USER:-honcho}:${HONCHO_DB_PASSWORD}@honcho-db:5432/${HONCHO_DB_NAME:-honcho}
+      REDIS_URL: redis://honcho-redis:6379
+      LLM_OPENAI_API_KEY: ${ANTHROPIC_API_KEY}
+      LLM_OPENAI_API_URL: https://api.anthropic.com/v1
+      LLM_DEFAULT_MODEL: ${HONCHO_LLM_MODEL:-claude-sonnet-4-6}
+    depends_on:
+      - honcho-db
+      - honcho-redis
+    networks:
+      - gordita
+
+volumes:
+  honcho_db_data:
+
+networks:
+  gordita:
+    driver: bridge
