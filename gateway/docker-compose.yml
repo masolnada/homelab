@@ -42,6 +42,26 @@ services:
       - caddy_data:/data
       - caddy_config:/config
 
+  caddy-watcher:
+    image: docker:cli
+    container_name: gateway-caddy-watcher
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - tailscale
+    command:
+      - sh
+      - -c
+      - |
+        docker events --filter "container=tailscale-gateway" --filter "event=start" |
+        while read event; do
+          until [ "$$(docker inspect --format '{{.State.Health.Status}}' tailscale-gateway)" = "healthy" ]; do
+            sleep 2
+          done
+          docker restart caddy
+        done
+
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
