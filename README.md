@@ -53,7 +53,7 @@ graph LR
     Immich -->|CIFS read-write| photos
 ```
 
-- 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar. `cloudflared` tunnel exposes `share.<DOMAIN>` publicly without opening inbound ports.
+- 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar. `cloudflared` tunnel exposes `share.<DOMAIN>` publicly without opening inbound ports. `caddy-watcher` automatically restarts Caddy whenever Tailscale restarts — necessary because Caddy uses `network_mode: service:tailscale` to share Tailscale's network namespace, and a Tailscale restart creates a new namespace that Caddy must rejoin.
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
 - 🎬 **Media** — Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts), Immich (photo management), immich-public-proxy (public album sharing at `share.<DOMAIN>`)
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
