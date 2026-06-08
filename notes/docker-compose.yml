@@ -10,6 +10,20 @@ services:
     networks:
       - proxy_net
 
+  webdav:
+    image: hacdias/webdav:latest
+    container_name: webdav
+    restart: unless-stopped
+    user: "1000:1000"
+    environment:
+      - WEBDAV_USER=${WEBDAV_USER}
+      - WEBDAV_PASSWORD=${WEBDAV_PASSWORD}
+    volumes:
+      - notes_space:/data
+      - ./webdav.yaml:/config.yaml:ro
+    networks:
+      - proxy_net
+
 volumes:
   notes_space:
     driver: local

@@ -39,6 +39,11 @@
 		reverse_proxy silverbullet:3000
 	}
 
+	@webdav host webdav.{$DOMAIN}
+	handle @webdav {
+		reverse_proxy webdav:6065
+	}
+
 	@photos host photos.{$DOMAIN}
 	handle @photos {
 		reverse_proxy immich-server:2283

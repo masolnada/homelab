@@ -58,7 +58,7 @@ graph LR
 - 🎬 **Media** — Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts), Immich (photo management), immich-public-proxy (public album sharing at `share.<DOMAIN>`)
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
-- 📝 **Notes** — Silverbullet web-native markdown wiki, files stored on NAS notes share
+- 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -236,6 +236,8 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_NOTES_USER` | NAS user for notes share |
 | `NAS_NOTES_PASSWORD` | NAS password for notes share |
 | `SB_USER` | Silverbullet login in `username:password` format (e.g. `admin:yourpassword`) |
+| `WEBDAV_USER` | WebDAV username for Obsidian sync |
+| `WEBDAV_PASSWORD` | WebDAV password for Obsidian sync |
 
 **dashboard/.env**
 
@@ -308,6 +310,27 @@ Then reload Caddy:
 ```bash
 docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
+
+## 📝 Notes (Obsidian + SilverBullet)
+
+The `notes/` stack exposes the same NAS vault (plain `.md` files) through two interfaces:
+
+| Interface | URL | Use case |
+|---|---|---|
+| SilverBullet | `https://notes.<DOMAIN>` | Web browser editing |
+| WebDAV | `https://webdav.<DOMAIN>` | Obsidian desktop & mobile sync |
+
+### Connecting Obsidian via WebDAV
+
+1. In Obsidian, open **Settings → Community plugins → Browse** and install **Remotely Save**
+2. Enable the plugin and open its settings
+3. Choose **WebDAV** as the remote service
+4. Set the server address to `https://webdav.<DOMAIN>`
+5. Enter your `WEBDAV_USER` and `WEBDAV_PASSWORD`
+6. Set the remote base directory to `/` (or leave blank)
+7. Tap **Check** to verify the connection, then **Sync**
+
+> **Note**: `notes/webdav.yaml` uses `${WEBDAV_USER}` / `${WEBDAV_PASSWORD}` placeholders that hacdias/webdav expands from the container environment. If your version does not support env var expansion in the config file, replace the placeholders with literal values directly in the file on the server.
 
 ## 📸 Immich Public Sharing
 

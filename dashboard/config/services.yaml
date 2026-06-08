@@ -80,6 +80,12 @@
         siteMonitor: http://silverbullet:3000
         server: my-docker
         container: silverbullet
+    - WebDAV:
+        icon: si-webdav
+        href: https://webdav.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://webdav:6065
+        server: my-docker
+        container: webdav
     - Markcards:
         icon: si-anki
         href: https://markcards.dev.marcsolanadal.com
