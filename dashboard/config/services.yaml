@@ -31,7 +31,7 @@
     - go2rtc:
         icon: go2rtc
         href: http://pi4b:1984/
-        siteMonitor: http://pi4b:1984/
+        siteMonitor: http://pi4b:1984/api
 
 - Media:
     - Navidrome:
