@@ -26,8 +26,12 @@
         icon: opnsense
         href: https://192.168.10.1/
     - Omada:
-        icon: tp-link-omada
+        icon: omada
         href: https://192.168.1.20:8043/#dashboardGlobal
+    - go2rtc:
+        icon: go2rtc
+        href: http://pi4b:1984/
+        siteMonitor: http://pi4b:1984/
 
 - Media:
     - Navidrome:
