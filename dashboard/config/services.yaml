@@ -30,8 +30,8 @@
         href: https://192.168.1.20:8043/#dashboardGlobal
     - go2rtc:
         icon: go2rtc
-        href: http://pi4b:1984/
-        siteMonitor: http://pi4b:1984/api
+        href: http://100.71.96.101:1984/
+        siteMonitor: http://100.71.96.101:1984/api
 
 - Media:
     - Navidrome:
