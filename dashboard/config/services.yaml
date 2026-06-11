@@ -17,6 +17,7 @@
         container: caddy
     - Tailscale:
         icon: tailscale
+        href: https://login.tailscale.com/admin/machines?refreshed=true
         server: my-docker
         container: tailscale-gateway
     - Proxmox:
