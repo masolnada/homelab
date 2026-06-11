@@ -13,7 +13,6 @@ graph LR
             Caddy --> Homepage
             Caddy --> Vaultwarden
             Caddy --> Navidrome
-            Caddy --> Audiobookshelf
             Caddy --> IHateMoney
             Caddy --> Radicale
             Caddy --> Silverbullet
@@ -23,7 +22,6 @@ graph LR
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
             DockerProxy -.->|Docker socket| Navidrome
-            DockerProxy -.->|Docker socket| Audiobookshelf
             DockerProxy -.->|Docker socket| IHateMoney
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Silverbullet
@@ -49,13 +47,12 @@ graph LR
     ImmichBackup -->|CIFS| backups
 
     Navidrome -->|CIFS read-only| media
-    Audiobookshelf -->|CIFS read-only| media
     Immich -->|CIFS read-write| photos
 ```
 
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar. `cloudflared` tunnel exposes `share.<DOMAIN>` publicly without opening inbound ports. `caddy-watcher` automatically restarts Caddy whenever Tailscale restarts — necessary because Caddy uses `network_mode: service:tailscale` to share Tailscale's network namespace, and a Tailscale restart creates a new namespace that Caddy must rejoin.
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
-- 🎬 **Media** — Navidrome (music streaming), Audiobookshelf (audiobooks/podcasts), Immich (photo management), immich-public-proxy (public album sharing at `share.<DOMAIN>`)
+- 🎬 **Media** — Navidrome (music streaming), Immich (photo management), immich-public-proxy (public album sharing at `share.<DOMAIN>`)
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
@@ -64,8 +61,7 @@ graph LR
 ## 📂 NAS Share Structure
 
 ```
-media/            ← SMB share (Navidrome, Audiobookshelf)
-├── audiobooks/   ← Audiobookshelf library
+media/            ← SMB share (Navidrome)
 └── music/        ← Navidrome library
 
 photos/           ← SMB share (Immich upload library, read-write)
@@ -83,7 +79,6 @@ graph LR
     Caddy -->|HTTP proxy_net| Homepage
     Caddy -->|HTTP proxy_net| Vaultwarden
     Caddy -->|HTTP proxy_net| Navidrome
-    Caddy -->|HTTP proxy_net| Audiobookshelf
     Caddy -->|HTTP proxy_net| IHateMoney
     Caddy -->|HTTP proxy_net| Radicale
     Caddy -->|HTTP proxy_net| Silverbullet
@@ -91,7 +86,6 @@ graph LR
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
-    Audiobookshelf -.-|CIFS LAN| NAS
     IHateMoney -.-|CIFS LAN| NAS
     Radicale -.-|CIFS LAN| NAS
     Silverbullet -.-|CIFS LAN| NAS
@@ -290,8 +284,8 @@ docker ps
 
 Before starting the stacks, make sure your TrueNAS server has:
 
-1. **SMB shares** — a backup share for Vaultwarden/IHateMoney/Radicale/Immich, a media share with subdirectories for music and audiobooks, and a photos share for Immich
-2. **Dedicated users** — a backup user (read/write), a media user (read-only for Navidrome/Audiobookshelf), and a photos user (read/write for Immich)
+1. **SMB shares** — a backup share for Vaultwarden/IHateMoney/Radicale/Immich, a media share with a music subdirectory for Navidrome, and a photos share for Immich
+2. **Dedicated users** — a backup user (read/write), a media user (read-only for Navidrome), and a photos user (read/write for Immich)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
 
 ## ➕ Adding a New Service

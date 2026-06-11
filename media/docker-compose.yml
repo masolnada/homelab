@@ -14,19 +14,6 @@ services:
     networks:
       - proxy_net
 
-  audiobookshelf:
-    image: ghcr.io/advplyr/audiobookshelf:latest
-    container_name: audiobookshelf
-    restart: unless-stopped
-    environment:
-      - TZ=${TIMEZONE}
-    volumes:
-      - audiobookshelf_config:/config
-      - audiobookshelf_metadata:/metadata
-      - nas_media:/media:ro
-    networks:
-      - proxy_net
-
   immich-server:
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     container_name: immich-server
@@ -121,8 +108,6 @@ services:
 
 volumes:
   navidrome_data:
-  audiobookshelf_config:
-  audiobookshelf_metadata:
   nas_media:
     driver: local
     driver_opts:
