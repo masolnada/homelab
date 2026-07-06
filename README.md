@@ -17,6 +17,7 @@ graph LR
             Caddy --> Radicale
             Caddy --> Silverbullet
             Caddy --> ImmichProxy[Immich Public Proxy]
+            Caddy --> Agent
             ImmichProxy --> Immich[Immich]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
@@ -26,10 +27,12 @@ graph LR
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Silverbullet
             DockerProxy -.->|Docker socket| Immich
+            DockerProxy -.->|Docker socket| Agent
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
             Immich -.- ImmichBackup[Backup Sidecar]
+            Agent -.- AgentBackup[Backup Sidecar]
         end
     end
 
@@ -45,6 +48,7 @@ graph LR
     IHMBackup -->|CIFS| backups
     RadBackup -->|CIFS| backups
     ImmichBackup -->|CIFS| backups
+    AgentBackup -->|CIFS| backups
 
     Navidrome -->|CIFS read-only| media
     Immich -->|CIFS read-write| photos
@@ -56,6 +60,7 @@ graph LR
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
+- 🤖 **Agent** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `agent.<DOMAIN>`, daily backup to TrueNAS (no downtime)
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -233,6 +238,18 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `WEBDAV_USER` | WebDAV username for Obsidian sync |
 | `WEBDAV_PASSWORD` | WebDAV password for Obsidian sync |
 
+**agent/.env**
+
+| Variable | Description |
+|---|---|
+| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
+| `NAS_IP` | TrueNAS IP address |
+| `NAS_BACKUP_SHARE` | SMB share name for backups |
+| `NAS_BACKUP_USER` | NAS user for backup share |
+| `NAS_BACKUP_PASSWORD` | NAS password for backup share |
+
+> **Note**: this stack's `.env` only holds deployment-level config (timezone, backup share). Model provider keys (Anthropic, GLM/Z.AI, Kimi, Telegram bot token, etc.) and all agent state (memories, SOUL.md, skills, sessions) live inside the `agent_data` volume at `/opt/data/.env` and `/opt/data/config.yaml` — this agent was migrated from an existing local Hermes install rather than configured from scratch, so its provider setup and personality carry over as-is. Run `docker exec -it agent hermes model` to change providers.
+
 **dashboard/.env**
 
 | Variable | Description |
@@ -265,7 +282,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, finance, contacts, notes, and dashboard in order.
+This starts gateway, security, media, finance, contacts, notes, agent, and dashboard in order.
 
 ### 5. ✅ Verify
 
@@ -361,11 +378,12 @@ This makes Immich embed the proxy URL in generated share links.
 
 ## 🔄 Backups
 
-Vaultwarden, IHateMoney, Radicale, and Immich are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
+Vaultwarden, IHateMoney, Radicale, Immich, and Agent are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
 
-- Pauses the application container during backup to prevent data corruption
 - Retains 30 days of backups with automatic rotation
 - Stores backups as `<service>-<timestamp>.tar.gz`
+
+Vaultwarden, IHateMoney, Radicale, and Immich stop their application container during backup to guarantee a consistent snapshot. **Agent is the exception** — it stays running during backup (a live copy of `/opt/data`), a deliberate tradeoff to avoid interrupting the agent; there's a small residual risk of catching a file mid-write.
 
 **Immich backup strategy:**
 - The **postgres database** (metadata, albums, faces) is backed up daily via the backup sidecar to `backups/immich/` on the NAS

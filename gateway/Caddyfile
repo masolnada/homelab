@@ -54,6 +54,11 @@
 		reverse_proxy homepage:3000
 	}
 
+	@agent host agent.{$DOMAIN}
+	handle @agent {
+		reverse_proxy agent:9119
+	}
+
 	handle {
 		abort
 	}
