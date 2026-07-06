@@ -92,7 +92,7 @@
         icon: si-anki
         href: https://markcards.dev.marcsolanadal.com
     - Agent:
-        icon: z-ai
+        icon: https://hermes-agent.nousresearch.com/docs/img/logo.png
         href: https://agent.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://agent:9119
         server: my-docker
