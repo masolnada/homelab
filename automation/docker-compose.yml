@@ -14,6 +14,7 @@ services:
     command: >
       sh -c 'rm -f /mosquitto/passwd
       && mosquitto_passwd -c -b /mosquitto/passwd "$$MQTT_USERNAME" "$$MQTT_PASSWORD"
+      && chown mosquitto:mosquitto /mosquitto/passwd
       && chmod 0600 /mosquitto/passwd
       && exec mosquitto -c /mosquitto/config/mosquitto.conf'
     volumes:
