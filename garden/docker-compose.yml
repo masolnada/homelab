@@ -1,6 +1,8 @@
 services:
   hort:
-    build: https://github.com/masolnada/automated-fertigation-system.git#main:dashboard
+    build:
+      context: https://github.com/masolnada/automated-fertigation-system.git#main:dashboard
+      dockerfile: Containerfile
     container_name: hort
     restart: unless-stopped
     environment:
