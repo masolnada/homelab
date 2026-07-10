@@ -97,3 +97,12 @@
         siteMonitor: http://agent:9119
         server: my-docker
         container: agent
+
+- Garden:
+    - Hort:
+        icon: mdi-sprinkler-variant
+        href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Fertigation system
+        siteMonitor: http://hort:80
+        server: my-docker
+        container: hort

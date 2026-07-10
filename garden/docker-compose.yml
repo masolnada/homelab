@@ -1,0 +1,16 @@
+services:
+  hort:
+    build: https://github.com/masolnada/automated-fertigation-system.git#main:dashboard
+    container_name: hort
+    restart: unless-stopped
+    environment:
+      - MQTT_URL=wss://mqtt.${DOMAIN}
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_PREFIX=kc868-a8
+    networks:
+      - proxy_net
+
+networks:
+  proxy_net:
+    external: true

@@ -18,6 +18,7 @@ graph LR
             Caddy --> Silverbullet
             Caddy --> ImmichProxy[Immich Public Proxy]
             Caddy --> Agent
+            Caddy --> Hort
             ImmichProxy --> Immich[Immich]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
@@ -28,6 +29,7 @@ graph LR
             DockerProxy -.->|Docker socket| Silverbullet
             DockerProxy -.->|Docker socket| Immich
             DockerProxy -.->|Docker socket| Agent
+            DockerProxy -.->|Docker socket| Hort
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
@@ -61,6 +63,7 @@ graph LR
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
 - 🤖 **Agent** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `agent.<DOMAIN>`, daily backup to TrueNAS (no downtime)
+- 🌱 **Garden** — Hort, the dashboard for the [automated fertigation system](https://github.com/masolnada/automated-fertigation-system), at `hort.<DOMAIN>`. Static page (nginx) built straight from that repo's `dashboard/` directory; talks MQTT-over-WebSockets from the browser to the Mosquitto broker via `mqtt.<DOMAIN>` (Caddy proxies wss to the broker on the LAN — an HTTPS page cannot open plain `ws://`). Stateless, so no backup sidecar.
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -88,6 +91,8 @@ graph LR
     Caddy -->|HTTP proxy_net| Radicale
     Caddy -->|HTTP proxy_net| Silverbullet
     Caddy -->|HTTP proxy_net| Immich
+    Caddy -->|HTTP proxy_net| Hort
+    Caddy -->|WSS to LAN| Mosquitto[Mosquitto broker]
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -250,6 +255,16 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 
 > **Note**: this stack's `.env` only holds deployment-level config (timezone, backup share). Model provider keys (Anthropic, GLM/Z.AI, Kimi, Telegram bot token, etc.) and all agent state (memories, SOUL.md, skills, sessions) live inside the `agent_data` volume at `/opt/data/.env` and `/opt/data/config.yaml` — this agent was migrated from an existing local Hermes install rather than configured from scratch, so its provider setup and personality carry over as-is. Run `docker exec -it agent hermes model` to change providers.
 
+**garden/.env**
+
+| Variable | Description |
+|---|---|
+| `DOMAIN` | Your base domain (e.g. `life.marcsolanadal.com`) — used to build the `wss://mqtt.<DOMAIN>` broker URL |
+| `MQTT_USERNAME` | Mosquitto broker username |
+| `MQTT_PASSWORD` | Mosquitto broker password |
+
+> **Note**: the MQTT credentials are rendered into the page's `config.js` at container start and are readable by anyone who can load the dashboard. That's the whole Tailnet — treat the `hort.<DOMAIN>` URL with the same trust as the broker itself.
+
 **dashboard/.env**
 
 | Variable | Description |
@@ -282,7 +297,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, finance, contacts, notes, agent, and dashboard in order.
+This starts gateway, security, media, finance, contacts, notes, agent, garden, and dashboard in order.
 
 ### 5. ✅ Verify
 
