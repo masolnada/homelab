@@ -98,7 +98,7 @@
         server: my-docker
         container: agent
 
-- Garden:
+- Automation:
     - Hort:
         icon: mdi-sprinkler-variant
         href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
@@ -106,8 +106,6 @@
         siteMonitor: http://hort:80
         server: my-docker
         container: hort
-
-- Automation:
     - ESPHome:
         icon: esphome
         href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
