@@ -28,6 +28,7 @@ Six independent Docker Compose stacks share a single `proxy_net` bridge network:
 - **downloads/** — qBittorrent. Mounts full NAS media share.
 - **finance/** — IHateMoney + backup sidecar (same pattern as security)
 - **dashboard/** — Homepage + Docker socket proxy (Tecnativa). Homepage connects to the proxy over TCP:2375, never touches the Docker socket directly.
+- **automation/** — Mosquitto MQTT broker (1883 plain + 9001 websockets, published on the host) + ESPHome dashboard. The VM carries 10.0.20.20 as a secondary IP (netplan overlay) so ESPHome devices keep their baked-in broker address.
 
 All inter-service traffic is plain HTTP over `proxy_net`. External access goes through Tailscale (WireGuard) → Caddy (TLS termination). NAS access is direct LAN via CIFS.
 

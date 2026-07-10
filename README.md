@@ -63,7 +63,8 @@ graph LR
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
 - 🤖 **Agent** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `agent.<DOMAIN>`, daily backup to TrueNAS (no downtime)
-- 🌱 **Garden** — Hort, the dashboard for the [automated fertigation system](https://github.com/masolnada/automated-fertigation-system), at `hort.<DOMAIN>`. Static page (nginx) built straight from that repo's `dashboard/` directory; talks MQTT-over-WebSockets from the browser to the Mosquitto broker via `mqtt.<DOMAIN>` (Caddy proxies wss to the broker on the LAN — an HTTPS page cannot open plain `ws://`). Stateless, so no backup sidecar.
+- 🌱 **Garden** — Hort, the dashboard for the [automated fertigation system](https://github.com/masolnada/automated-fertigation-system), at `hort.<DOMAIN>`. Static page (nginx) built straight from that repo's `dashboard/` directory; talks MQTT-over-WebSockets from the browser to the Mosquitto broker via `mqtt.<DOMAIN>` (Caddy proxies wss to `mosquitto:9001` — an HTTPS page cannot open plain `ws://`). Stateless, so no backup sidecar.
+- 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`.
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -92,7 +93,9 @@ graph LR
     Caddy -->|HTTP proxy_net| Silverbullet
     Caddy -->|HTTP proxy_net| Immich
     Caddy -->|HTTP proxy_net| Hort
-    Caddy -->|WSS to LAN| Mosquitto[Mosquitto broker]
+    Caddy -->|WSS proxy_net| Mosquitto[Mosquitto broker]
+    Caddy -->|HTTP proxy_net| ESPHome
+    Devices[ESPHome devices] -->|MQTT 10.0.20.20:1883| Mosquitto
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -265,6 +268,14 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 
 > **Note**: the MQTT credentials are rendered into the page's `config.js` at container start and are readable by anyone who can load the dashboard. That's the whole Tailnet — treat the `hort.<DOMAIN>` URL with the same trust as the broker itself.
 
+**automation/.env**
+
+| Variable | Description |
+|---|---|
+| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
+| `MQTT_USERNAME` | Mosquitto username — the container renders its password file from these at start |
+| `MQTT_PASSWORD` | Mosquitto password (same values the ESPHome devices and the hort dashboard use) |
+
 **dashboard/.env**
 
 | Variable | Description |
@@ -297,7 +308,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, finance, contacts, notes, agent, garden, and dashboard in order.
+This starts gateway, security, media, finance, contacts, notes, agent, garden, automation, and dashboard in order.
 
 ### 5. ✅ Verify
 

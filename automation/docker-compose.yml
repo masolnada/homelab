@@ -1,0 +1,44 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    environment:
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+    # Renders the password file from the environment at start; the image has
+    # no env substitution of its own.
+    command: >
+      sh -c 'mosquitto_passwd -c -b /mosquitto/passwd "$$MQTT_USERNAME" "$$MQTT_PASSWORD"
+      && chmod 0600 /mosquitto/passwd
+      && exec mosquitto -c /mosquitto/config/mosquitto.conf'
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+    networks:
+      - proxy_net
+
+  esphome:
+    image: ghcr.io/esphome/esphome:latest
+    container_name: esphome
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+      # mDNS does not cross the bridge network; check device reachability by
+      # ping instead (was usePing on the old NixOS host).
+      - ESPHOME_DASHBOARD_USE_PING=true
+    volumes:
+      - esphome_config:/config
+    networks:
+      - proxy_net
+
+volumes:
+  mosquitto_data:
+  esphome_config:
+
+networks:
+  proxy_net:
+    external: true

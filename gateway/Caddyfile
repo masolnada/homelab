@@ -66,7 +66,12 @@
 
 	@mqtt host mqtt.{$DOMAIN}
 	handle @mqtt {
-		reverse_proxy 10.0.20.20:9001
+		reverse_proxy mosquitto:9001
+	}
+
+	@esphome host esphome.{$DOMAIN}
+	handle @esphome {
+		reverse_proxy esphome:6052
 	}
 
 	handle {
