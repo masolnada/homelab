@@ -12,7 +12,8 @@ services:
     # Renders the password file from the environment at start; the image has
     # no env substitution of its own.
     command: >
-      sh -c 'mosquitto_passwd -c -b /mosquitto/passwd "$$MQTT_USERNAME" "$$MQTT_PASSWORD"
+      sh -c 'rm -f /mosquitto/passwd
+      && mosquitto_passwd -c -b /mosquitto/passwd "$$MQTT_USERNAME" "$$MQTT_PASSWORD"
       && chmod 0600 /mosquitto/passwd
       && exec mosquitto -c /mosquitto/config/mosquitto.conf'
     volumes:
