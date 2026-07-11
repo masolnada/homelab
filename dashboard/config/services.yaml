@@ -99,18 +99,6 @@
         icon: si-anki
         href: https://markcards.dev.marcsolanadal.com
         description: markcards.dev.marcsolanadal.com
-    - ESPHome:
-        icon: esphome
-        href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
-        description: esphome.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://esphome:6052
-        server: my-docker
-        container: esphome
-    - Mosquitto:
-        icon: mqtt
-        description: "MQTT broker — 10.0.20.20:1883 / wss mqtt.{{HOMEPAGE_VAR_DOMAIN}}"
-        server: my-docker
-        container: mosquitto
 
 - Automation:
     - Hermes:
@@ -127,3 +115,15 @@
         siteMonitor: http://hort:80
         server: my-docker
         container: hort
+    - ESPHome:
+        icon: esphome
+        href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
+        description: esphome.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://esphome:6052
+        server: my-docker
+        container: esphome
+    - Mosquitto:
+        icon: mqtt
+        description: "MQTT broker — 10.0.20.20:1883 / wss mqtt.{{HOMEPAGE_VAR_DOMAIN}}"
+        server: my-docker
+        container: mosquitto
