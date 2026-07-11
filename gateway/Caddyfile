@@ -54,9 +54,9 @@
 		reverse_proxy homepage:3000
 	}
 
-	@agent host agent.{$DOMAIN}
-	handle @agent {
-		reverse_proxy agent:9119
+	@hermes host hermes.{$DOMAIN}
+	handle @hermes {
+		reverse_proxy hermes:9119
 	}
 
 	@hort host hort.{$DOMAIN}

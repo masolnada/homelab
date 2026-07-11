@@ -17,7 +17,7 @@ graph LR
             Caddy --> Radicale
             Caddy --> Silverbullet
             Caddy --> ImmichProxy[Immich Public Proxy]
-            Caddy --> Agent
+            Caddy --> Hermes
             Caddy --> Hort
             ImmichProxy --> Immich[Immich]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
@@ -28,13 +28,13 @@ graph LR
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Silverbullet
             DockerProxy -.->|Docker socket| Immich
-            DockerProxy -.->|Docker socket| Agent
+            DockerProxy -.->|Docker socket| Hermes
             DockerProxy -.->|Docker socket| Hort
             Vaultwarden -.- Backup[Backup Sidecar]
             IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
             Immich -.- ImmichBackup[Backup Sidecar]
-            Agent -.- AgentBackup[Backup Sidecar]
+            Hermes -.- HermesBackup[Backup Sidecar]
         end
     end
 
@@ -50,7 +50,7 @@ graph LR
     IHMBackup -->|CIFS| backups
     RadBackup -->|CIFS| backups
     ImmichBackup -->|CIFS| backups
-    AgentBackup -->|CIFS| backups
+    HermesBackup -->|CIFS| backups
 
     Navidrome -->|CIFS read-only| media
     Immich -->|CIFS read-write| photos
@@ -62,7 +62,7 @@ graph LR
 - 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
-- 🤖 **Agent** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `agent.<DOMAIN>`, daily backup to TrueNAS (no downtime)
+- 🤖 **Hermes** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `hermes.<DOMAIN>`, daily backup to TrueNAS (no downtime)
 - 🌱 **Garden** — Hort, the dashboard for the [automated fertigation system](https://github.com/masolnada/automated-fertigation-system), at `hort.<DOMAIN>`. Static page (nginx) built straight from that repo's `dashboard/` directory; talks MQTT-over-WebSockets from the browser to the Mosquitto broker via `mqtt.<DOMAIN>` (Caddy proxies wss to `mosquitto:9001` — an HTTPS page cannot open plain `ws://`). Stateless, so no backup sidecar.
 - 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`.
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
@@ -256,7 +256,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
-> **Note**: this stack's `.env` only holds deployment-level config (timezone, backup share). Model provider keys (Anthropic, GLM/Z.AI, Kimi, Telegram bot token, etc.) and all agent state (memories, SOUL.md, skills, sessions) live inside the `agent_data` volume at `/opt/data/.env` and `/opt/data/config.yaml` — this agent was migrated from an existing local Hermes install rather than configured from scratch, so its provider setup and personality carry over as-is. Run `docker exec -it agent hermes model` to change providers.
+> **Note**: this stack's `.env` only holds deployment-level config (timezone, backup share). Model provider keys (Anthropic, GLM/Z.AI, Kimi, Telegram bot token, etc.) and all agent state (memories, SOUL.md, skills, sessions) live inside the `agent_data` volume at `/opt/data/.env` and `/opt/data/config.yaml` — this agent was migrated from an existing local Hermes install rather than configured from scratch, so its provider setup and personality carry over as-is. Run `docker exec -it hermes hermes model` to change providers.
 
 **garden/.env**
 
@@ -404,12 +404,12 @@ This makes Immich embed the proxy URL in generated share links.
 
 ## 🔄 Backups
 
-Vaultwarden, IHateMoney, Radicale, Immich, and Agent are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
+Vaultwarden, IHateMoney, Radicale, Immich, and Hermes are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
 
 - Retains 30 days of backups with automatic rotation
 - Stores backups as `<service>-<timestamp>.tar.gz`
 
-Vaultwarden, IHateMoney, Radicale, and Immich stop their application container during backup to guarantee a consistent snapshot. **Agent is the exception** — it stays running during backup (a live copy of `/opt/data`), a deliberate tradeoff to avoid interrupting the agent; there's a small residual risk of catching a file mid-write.
+Vaultwarden, IHateMoney, Radicale, and Immich stop their application container during backup to guarantee a consistent snapshot. **Hermes is the exception** — it stays running during backup (a live copy of `/opt/data`), a deliberate tradeoff to avoid interrupting the agent; there's a small residual risk of catching a file mid-write.
 
 **Immich backup strategy:**
 - The **postgres database** (metadata, albums, faces) is backed up daily via the backup sidecar to `backups/immich/` on the NAS

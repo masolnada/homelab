@@ -91,21 +91,12 @@
     - Markcards:
         icon: si-anki
         href: https://markcards.dev.marcsolanadal.com
-    - Agent:
+    - Hermes:
         icon: https://hermes-agent.nousresearch.com/docs/img/logo.png
-        href: https://agent.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://agent:9119
+        href: https://hermes.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://hermes:9119
         server: my-docker
-        container: agent
-
-- Automation:
-    - Hort:
-        icon: mdi-sprinkler-variant
-        href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
-        description: Fertigation system
-        siteMonitor: http://hort:80
-        server: my-docker
-        container: hort
+        container: hermes
     - ESPHome:
         icon: esphome
         href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
@@ -117,3 +108,12 @@
         description: "MQTT broker — 10.0.20.20:1883 / wss mqtt.{{HOMEPAGE_VAR_DOMAIN}}"
         server: my-docker
         container: mosquitto
+
+- Automation:
+    - Hort:
+        icon: mdi-sprinkler-variant
+        href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
+        description: Fertigation system
+        siteMonitor: http://hort:80
+        server: my-docker
+        container: hort

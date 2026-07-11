@@ -1,7 +1,7 @@
 services:
-  agent:
+  hermes:
     image: nousresearch/hermes-agent:latest
-    container_name: agent
+    container_name: hermes
     restart: unless-stopped
     command: gateway run
     environment:
@@ -19,7 +19,7 @@ services:
 
   backup:
     image: offen/docker-volume-backup:latest@sha256:26df48fdb7bd32f114fc7420beae3960055ae1f40ba5ff3bfd787cb5f15fefa5
-    container_name: agent-backup
+    container_name: hermes-backup
     restart: unless-stopped
     environment:
       - BACKUP_CRON_EXPRESSION=0 3 * * *
