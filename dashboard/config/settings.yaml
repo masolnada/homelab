@@ -9,9 +9,9 @@ layout:
   Media:
     style: row
     columns: 3
-  Services:
+  Automation:
     style: row
     columns: 3
-  Automation:
+  Services:
     style: row
     columns: 3
