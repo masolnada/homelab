@@ -123,7 +123,7 @@
     - Hort:
         icon: mdi-sprinkler-variant
         href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
-        description: "Fertigation system — hort.{{HOMEPAGE_VAR_DOMAIN}}"
+        description: hort.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://hort:80
         server: my-docker
         container: hort
