@@ -91,12 +91,6 @@
     - Markcards:
         icon: si-anki
         href: https://markcards.dev.marcsolanadal.com
-    - Hermes:
-        icon: https://hermes-agent.nousresearch.com/docs/img/logo.png
-        href: https://hermes.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://hermes:9119
-        server: my-docker
-        container: hermes
     - ESPHome:
         icon: esphome
         href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
@@ -110,6 +104,12 @@
         container: mosquitto
 
 - Automation:
+    - Hermes:
+        icon: https://hermes-agent.nousresearch.com/docs/img/logo.png
+        href: https://hermes.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://hermes:9119
+        server: my-docker
+        container: hermes
     - Hort:
         icon: mdi-sprinkler-variant
         href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
