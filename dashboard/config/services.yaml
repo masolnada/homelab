@@ -38,6 +38,7 @@
     - Navidrome:
         icon: navidrome
         href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
+        description: music.{{HOMEPAGE_VAR_DOMAIN}}
         widget:
           type: navidrome
           url: https://music.{{HOMEPAGE_VAR_DOMAIN}}
@@ -49,6 +50,7 @@
     - Immich:
         icon: immich
         href: https://photos.{{HOMEPAGE_VAR_DOMAIN}}
+        description: photos.{{HOMEPAGE_VAR_DOMAIN}}
         widget:
           type: immich
           url: http://immich-server:2283
@@ -61,39 +63,46 @@
     - Vaultwarden:
         icon: vaultwarden
         href: https://vault.{{HOMEPAGE_VAR_DOMAIN}}
+        description: vault.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://vaultwarden:80
         server: my-docker
         container: vaultwarden
     - IHateMoney:
         icon: si-cashapp
         href: https://money.{{HOMEPAGE_VAR_DOMAIN}}
+        description: money.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://ihatemoney:8000
         server: my-docker
         container: ihatemoney
     - Radicale:
         icon: radicale
         href: https://contacts.{{HOMEPAGE_VAR_DOMAIN}}
+        description: contacts.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://radicale:5232
         server: my-docker
         container: radicale
     - Silverbullet:
         icon: si-markdown
         href: https://notes.{{HOMEPAGE_VAR_DOMAIN}}
+        description: notes.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://silverbullet:3000
         server: my-docker
         container: silverbullet
     - WebDAV:
         icon: si-webdav
         href: https://webdav.{{HOMEPAGE_VAR_DOMAIN}}
+        description: webdav.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://webdav:6065
         server: my-docker
         container: webdav
     - Markcards:
         icon: si-anki
         href: https://markcards.dev.marcsolanadal.com
+        description: markcards.dev.marcsolanadal.com
     - ESPHome:
         icon: esphome
         href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
+        description: esphome.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://esphome:6052
         server: my-docker
         container: esphome
@@ -107,13 +116,14 @@
     - Hermes:
         icon: https://hermes-agent.nousresearch.com/docs/img/logo.png
         href: https://hermes.{{HOMEPAGE_VAR_DOMAIN}}
+        description: hermes.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://hermes:9119
         server: my-docker
         container: hermes
     - Hort:
         icon: mdi-sprinkler-variant
         href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
-        description: Fertigation system
+        description: "Fertigation system — hort.{{HOMEPAGE_VAR_DOMAIN}}"
         siteMonitor: http://hort:80
         server: my-docker
         container: hort
