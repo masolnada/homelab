@@ -67,6 +67,13 @@
         siteMonitor: http://hermes:9119
         server: my-docker
         container: hermes
+    - Hermes Workspace:
+        icon: https://hermes-agent.nousresearch.com/docs/img/logo.png
+        href: https://workspace.{{HOMEPAGE_VAR_DOMAIN}}
+        description: workspace.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://hermes-workspace:3000
+        server: my-docker
+        container: hermes-workspace
     - Hort:
         icon: mdi-sprinkler-variant
         href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}

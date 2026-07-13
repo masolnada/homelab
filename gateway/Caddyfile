@@ -59,6 +59,11 @@
 		reverse_proxy hermes:9119
 	}
 
+	@workspace host workspace.{$DOMAIN}
+	handle @workspace {
+		reverse_proxy hermes-workspace:3000
+	}
+
 	@hort host hort.{$DOMAIN}
 	handle @hort {
 		reverse_proxy hort:80

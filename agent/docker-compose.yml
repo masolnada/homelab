@@ -7,14 +7,51 @@ services:
     environment:
       - TZ=${TIMEZONE}
       - HERMES_DASHBOARD=1
+      - API_SERVER_ENABLED=true
+      - API_SERVER_HOST=0.0.0.0
+      - API_SERVER_KEY=${HERMES_API_KEY}
     volumes:
       - agent_data:/opt/data
+    networks:
+      - proxy_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8642/health && curl -fsS http://localhost:9119/api/status || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
+
+  workspace:
+    image: ghcr.io/outsourc-e/hermes-workspace:latest
+    container_name: hermes-workspace
+    restart: unless-stopped
+    depends_on:
+      hermes:
+        condition: service_healthy
+    environment:
+      - TZ=${TIMEZONE}
+      - HERMES_HOME=/home/workspace/.hermes
+      - HERMES_WORKSPACE_DIR=/workspace
+      - HERMES_API_URL=http://hermes:8642
+      - HERMES_DASHBOARD_URL=http://hermes:9119
+      - HERMES_API_TOKEN=${HERMES_API_KEY}
+      - HERMES_PASSWORD=${HERMES_WORKSPACE_PASSWORD}
+      - COOKIE_SECURE=1
+      - TRUST_PROXY=1
+    volumes:
+      - agent_data:/home/workspace/.hermes
+      - workspace_files:/workspace
     networks:
       - proxy_net
     deploy:
       resources:
         limits:
-          memory: 2G
+          memory: 1G
           cpus: "1.0"
 
   backup:
@@ -29,6 +66,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - agent_data:/backup/agent_data:ro
+      - workspace_files:/backup/workspace_files:ro
       - nas_backup:/archive
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
@@ -37,6 +75,7 @@ services:
 
 volumes:
   agent_data:
+  workspace_files:
   nas_backup:
     driver: local
     driver_opts:
