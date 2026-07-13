@@ -56,6 +56,9 @@
 
 	@hermes host hermes.{$DOMAIN}
 	handle @hermes {
+		basic_auth {
+			admin {$HERMES_DASH_HASH}
+		}
 		reverse_proxy hermes:9119
 	}
 
