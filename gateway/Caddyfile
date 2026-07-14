@@ -19,11 +19,6 @@
 		reverse_proxy navidrome:4533
 	}
 
-	@money host money.{$DOMAIN}
-	handle @money {
-		reverse_proxy ihatemoney:8000
-	}
-
 	@contacts host contacts.{$DOMAIN}
 	handle @contacts {
 		reverse_proxy radicale:5232

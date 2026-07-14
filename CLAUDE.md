@@ -12,7 +12,7 @@ ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo git pull"
 # Restart a specific stack after pulling
 ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo docker compose -f <stack>/docker-compose.yml up -d"
 
-# Start all stacks in order (gateway → security → media → downloads → finance → dashboard)
+# Start all stacks in order (gateway → security → media → contacts → notes → agent → garden → automation → dashboard)
 ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo ./start.sh"
 ```
 
@@ -26,7 +26,6 @@ Six independent Docker Compose stacks share a single `proxy_net` bridge network:
 - **security/** — Vaultwarden + backup sidecar (daily CIFS backup to TrueNAS, pauses container during backup)
 - **media/** — Jellyfin (video streaming) and Navidrome (music streaming). Both mount the NAS media share read-only.
 - **downloads/** — qBittorrent. Mounts full NAS media share.
-- **finance/** — IHateMoney + backup sidecar (same pattern as security)
 - **dashboard/** — Homepage + Docker socket proxy (Tecnativa). Homepage connects to the proxy over TCP:2375, never touches the Docker socket directly.
 - **automation/** — Mosquitto MQTT broker (1883 plain + 9001 websockets, published on the host) + ESPHome dashboard. The VM carries 10.0.20.20 as a secondary IP (netplan overlay) so ESPHome devices keep their baked-in broker address.
 

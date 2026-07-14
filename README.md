@@ -13,7 +13,6 @@ graph LR
             Caddy --> Homepage
             Caddy --> Vaultwarden
             Caddy --> Navidrome
-            Caddy --> IHateMoney
             Caddy --> Radicale
             Caddy --> Silverbullet
             Caddy --> ImmichProxy[Immich Public Proxy]
@@ -26,7 +25,6 @@ graph LR
             DockerProxy -.->|Docker socket| Caddy
             DockerProxy -.->|Docker socket| Vaultwarden
             DockerProxy -.->|Docker socket| Navidrome
-            DockerProxy -.->|Docker socket| IHateMoney
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Silverbullet
             DockerProxy -.->|Docker socket| Immich
@@ -34,7 +32,6 @@ graph LR
             DockerProxy -.->|Docker socket| HermesWorkspace
             DockerProxy -.->|Docker socket| Hort
             Vaultwarden -.- Backup[Backup Sidecar]
-            IHateMoney -.- IHMBackup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
             Immich -.- ImmichBackup[Backup Sidecar]
             Hermes -.- HermesBackup[Backup Sidecar]
@@ -50,7 +47,6 @@ graph LR
     Homepage -.->|API| TrueNAS
 
     Backup -->|CIFS| backups
-    IHMBackup -->|CIFS| backups
     RadBackup -->|CIFS| backups
     ImmichBackup -->|CIFS| backups
     HermesBackup -->|CIFS| backups
@@ -62,7 +58,6 @@ graph LR
 - 🌐 **Gateway** — Caddy with Cloudflare DNS-01 TLS, exposed via Tailscale sidecar. `cloudflared` tunnel exposes `share.<DOMAIN>` publicly without opening inbound ports. `caddy-watcher` automatically restarts Caddy whenever Tailscale restarts — necessary because Caddy uses `network_mode: service:tailscale` to share Tailscale's network namespace, and a Tailscale restart creates a new namespace that Caddy must rejoin.
 - 🔐 **Security** — Vaultwarden with daily backup to TrueNAS
 - 🎬 **Media** — Navidrome (music streaming), Immich (photo management), immich-public-proxy (public album sharing at `share.<DOMAIN>`)
-- 💰 **Finance** — IHateMoney shared expense tracker with daily backup to TrueNAS
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
 - 🤖 **Hermes** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `hermes.<DOMAIN>`, daily backup to TrueNAS (no downtime). [Hermes Workspace](https://github.com/outsourc-e/hermes-workspace) at `workspace.<DOMAIN>` adds a full UI on top of the same agent (chat, file browser, terminal, skills/memory management) — it shares the `agent_data` volume and talks to the agent's gateway API (:8642, token-protected via `HERMES_API_KEY`) and dashboard API (:9119); workspace login uses `HERMES_WORKSPACE_PASSWORD`. Known limitation: the hermes dashboard's `basic_auth` (which hermes *requires* on non-loopback binds — there is no unauthenticated option) blocks the workspace from scraping a dashboard session token, so dashboard-token features (session kanban, context usage) run degraded; chat, files, skills, and memory work fully via the gateway API. Fixing this would require binding the dashboard to loopback and sharing hermes's network namespace, at the cost of the standalone `hermes.<DOMAIN>` UI.
@@ -91,7 +86,6 @@ graph LR
     Caddy -->|HTTP proxy_net| Homepage
     Caddy -->|HTTP proxy_net| Vaultwarden
     Caddy -->|HTTP proxy_net| Navidrome
-    Caddy -->|HTTP proxy_net| IHateMoney
     Caddy -->|HTTP proxy_net| Radicale
     Caddy -->|HTTP proxy_net| Silverbullet
     Caddy -->|HTTP proxy_net| Immich
@@ -102,7 +96,6 @@ graph LR
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
-    IHateMoney -.-|CIFS LAN| NAS
     Radicale -.-|CIFS LAN| NAS
     Silverbullet -.-|CIFS LAN| NAS
     Immich -.-|CIFS LAN| NAS
@@ -216,17 +209,6 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 
-**finance/.env**
-
-| Variable | Description |
-|---|---|
-| `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
-| `IHATEMONEY_SECRET_KEY` | Secret key for session signing — generate with `openssl rand -base64 48` |
-| `NAS_IP` | TrueNAS IP address |
-| `NAS_BACKUP_SHARE` | SMB share name for backups |
-| `NAS_BACKUP_USER` | NAS user for backup share |
-| `NAS_BACKUP_PASSWORD` | NAS password for backup share |
-
 **contacts/.env**
 
 | Variable | Description |
@@ -313,7 +295,7 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ./start.sh
 ```
 
-This starts gateway, security, media, finance, contacts, notes, agent, garden, automation, and dashboard in order.
+This starts gateway, security, media, contacts, notes, agent, garden, automation, and dashboard in order.
 
 ### 5. ✅ Verify
 
@@ -332,7 +314,7 @@ docker ps
 
 Before starting the stacks, make sure your TrueNAS server has:
 
-1. **SMB shares** — a backup share for Vaultwarden/IHateMoney/Radicale/Immich, a media share with a music subdirectory for Navidrome, and a photos share for Immich
+1. **SMB shares** — a backup share for Vaultwarden/Radicale/Immich, a media share with a music subdirectory for Navidrome, and a photos share for Immich
 2. **Dedicated users** — a backup user (read/write), a media user (read-only for Navidrome), and a photos user (read/write for Immich)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
 
@@ -409,12 +391,12 @@ This makes Immich embed the proxy URL in generated share links.
 
 ## 🔄 Backups
 
-Vaultwarden, IHateMoney, Radicale, Immich, and Hermes are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
+Vaultwarden, Radicale, Immich, and Hermes are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
 
 - Retains 30 days of backups with automatic rotation
 - Stores backups as `<service>-<timestamp>.tar.gz`
 
-Vaultwarden, IHateMoney, Radicale, and Immich stop their application container during backup to guarantee a consistent snapshot. **Hermes is the exception** — it stays running during backup (a live copy of `/opt/data`), a deliberate tradeoff to avoid interrupting the agent; there's a small residual risk of catching a file mid-write. The Hermes backup archive also includes the `workspace_files` volume (the Workspace UI's `/workspace` working directory).
+Vaultwarden, Radicale, and Immich stop their application container during backup to guarantee a consistent snapshot. **Hermes is the exception** — it stays running during backup (a live copy of `/opt/data`), a deliberate tradeoff to avoid interrupting the agent; there's a small residual risk of catching a file mid-write. The Hermes backup archive also includes the `workspace_files` volume (the Workspace UI's `/workspace` working directory).
 
 **Immich backup strategy:**
 - The **postgres database** (metadata, albums, faces) is backed up daily via the backup sidecar to `backups/immich/` on the NAS
