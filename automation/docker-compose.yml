@@ -37,9 +37,42 @@ services:
     networks:
       - proxy_net
 
+  z2m-baixos:
+    image: ghcr.io/koenkk/zigbee2mqtt:2.6.2
+    container_name: z2m-baixos
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    environment:
+      - TZ=${TIMEZONE}
+      # Skip the first-boot onboarding UI; config comes from the env vars below.
+      - Z2M_ONBOARD_NO_SERVER=1
+      # SLZB-06P7 network coordinator "zb-coord-baixos" (CC2652P7 → zstack, TCP)
+      - ZIGBEE2MQTT_CONFIG_SERIAL_PORT=tcp://10.0.20.6:6638
+      - ZIGBEE2MQTT_CONFIG_SERIAL_ADAPTER=zstack
+      - ZIGBEE2MQTT_CONFIG_MQTT_SERVER=mqtt://mosquitto:1883
+      - ZIGBEE2MQTT_CONFIG_MQTT_USER=${MQTT_USERNAME}
+      - ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD=${MQTT_PASSWORD}
+      - ZIGBEE2MQTT_CONFIG_MQTT_BASE_TOPIC=zigbee2mqtt-baixos
+      - ZIGBEE2MQTT_CONFIG_FRONTEND_ENABLED=true
+      - ZIGBEE2MQTT_CONFIG_FRONTEND_PORT=8080
+      # Raw MQTT JSON only — no Home Assistant discovery.
+      - ZIGBEE2MQTT_CONFIG_HOMEASSISTANT_ENABLED=false
+      # Per-coordinator network identity. Concrete values in .env — never
+      # GENERATE here: env overrides re-apply every boot and would re-form
+      # the network (orphaning all paired devices) on each restart.
+      - ZIGBEE2MQTT_CONFIG_ADVANCED_NETWORK_KEY=${Z2M_BAIXOS_NETWORK_KEY}
+      - ZIGBEE2MQTT_CONFIG_ADVANCED_PAN_ID=${Z2M_BAIXOS_PAN_ID}
+      - ZIGBEE2MQTT_CONFIG_ADVANCED_EXT_PAN_ID=${Z2M_BAIXOS_EXT_PAN_ID}
+    volumes:
+      - z2m_baixos_data:/app/data
+    networks:
+      - proxy_net
+
 volumes:
   mosquitto_data:
   esphome_config:
+  z2m_baixos_data:
 
 networks:
   proxy_net:

@@ -74,6 +74,11 @@
 		reverse_proxy esphome:6052
 	}
 
+	@z2m-baixos host z2m-baixos.{$DOMAIN}
+	handle @z2m-baixos {
+		reverse_proxy z2m-baixos:8080
+	}
+
 	handle {
 		abort
 	}

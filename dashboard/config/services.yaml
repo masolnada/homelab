@@ -88,6 +88,13 @@
         siteMonitor: http://esphome:6052
         server: my-docker
         container: esphome
+    - Zigbee2MQTT (baixos):
+        icon: zigbee2mqtt
+        href: https://z2m-baixos.{{HOMEPAGE_VAR_DOMAIN}}
+        description: z2m-baixos.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://z2m-baixos:8080
+        server: my-docker
+        container: z2m-baixos
     - Mosquitto:
         icon: mqtt
         description: "MQTT broker — 10.0.20.20:1883 / wss mqtt.{{HOMEPAGE_VAR_DOMAIN}}"
