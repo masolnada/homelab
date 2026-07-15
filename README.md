@@ -266,7 +266,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `MQTT_USERNAME` | Mosquitto username — the container renders its password file from these at start |
 | `MQTT_PASSWORD` | Mosquitto password (same values the ESPHome devices, the hort dashboard, and Zigbee2MQTT use) |
 | `Z2M_BAIXOS_NETWORK_KEY` | Zigbee network key, 16-byte array without spaces (e.g. `[13,42,...]`) — **generate once, never change after pairing devices** (changing it orphans the whole network) |
-| `Z2M_BAIXOS_PAN_ID` | Zigbee PAN ID, `0x0001`–`0xFFF7`, unique per coordinator — same generate-once warning |
+| `Z2M_BAIXOS_PAN_ID` | Zigbee PAN ID, decimal `1`–`65527` (hex is rejected — the env value is JSON-parsed), unique per coordinator — same generate-once warning |
 | `Z2M_BAIXOS_EXT_PAN_ID` | Zigbee extended PAN ID, 8-byte array without spaces, unique per coordinator — same generate-once warning |
 
 **dashboard/.env**
