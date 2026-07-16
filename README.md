@@ -62,7 +62,7 @@ graph LR
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
 - 🤖 **Hermes** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `hermes.<DOMAIN>`, daily backup to TrueNAS (no downtime). [Hermes Workspace](https://github.com/outsourc-e/hermes-workspace) at `workspace.<DOMAIN>` adds a full UI on top of the same agent (chat, file browser, terminal, skills/memory management) — it shares the `agent_data` volume and talks to the agent's gateway API (:8642, token-protected via `HERMES_API_KEY`) and dashboard API (:9119); workspace login uses `HERMES_WORKSPACE_PASSWORD`. Known limitation: the hermes dashboard's `basic_auth` (which hermes *requires* on non-loopback binds — there is no unauthenticated option) blocks the workspace from scraping a dashboard session token, so dashboard-token features (session kanban, context usage) run degraded; chat, files, skills, and memory work fully via the gateway API. Fixing this would require binding the dashboard to loopback and sharing hermes's network namespace, at the cost of the standalone `hermes.<DOMAIN>` UI.
 - 🌱 **Garden** — Hort, the dashboard for the [automated fertigation system](https://github.com/masolnada/automated-fertigation-system), at `hort.<DOMAIN>`. Static page (nginx) built straight from that repo's `dashboard/` directory; talks MQTT-over-WebSockets from the browser to the Mosquitto broker via `mqtt.<DOMAIN>` (Caddy proxies wss to `mosquitto:9001` — an HTTPS page cannot open plain `ws://`). Stateless, so no backup sidecar.
-- 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`. Zigbee2MQTT (`z2m-baixos`) drives the SLZB-06P7 network coordinator "zb-coord-baixos" at `10.0.20.6:6638` (zstack over TCP — no USB passthrough), frontend at `z2m-baixos.<DOMAIN>`, publishing raw JSON to `zigbee2mqtt-baixos/#` on Mosquitto (Home Assistant discovery disabled). Everything is named per-coordinator because a second coordinator/instance is planned; state (device DB, network config) lives in the `z2m_baixos_data` volume — no backup sidecar yet, so keep the `Z2M_BAIXOS_*` network identity values safe.
+- 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`. Two Zigbee2MQTT instances (`z2m-baixos` and `z2m-pis`) each drive an SLZB-06P7 network coordinator — "zb-coord-baixos" at `10.0.20.6:6638` and "zb-coord-pis" at `10.0.20.5:6638` (zstack over TCP — no USB passthrough). Frontends at `z2m-baixos.<DOMAIN>` / `z2m-pis.<DOMAIN>`, publishing raw JSON to `zigbee2mqtt-baixos/#` / `zigbee2mqtt-pis/#` on Mosquitto (Home Assistant discovery disabled). The networks use distinct radio channels (baixos on the default 11, pis pinned to 15) and distinct `Z2M_<NAME>_*` identity values. State (device DB, network config) lives in the `z2m_baixos_data` / `z2m_pis_data` volumes — no backup sidecar yet, so keep the `Z2M_*` network identity values safe.
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -94,7 +94,10 @@ graph LR
     Caddy -->|HTTP proxy_net| ESPHome
     Caddy -->|HTTP proxy_net| Z2M[Zigbee2MQTT baixos]
     Z2M -->|MQTT proxy_net| Mosquitto
-    Z2M -->|TCP 10.0.20.6:6638| Coord[SLZB-06P7 coordinator]
+    Z2M -->|TCP 10.0.20.6:6638| Coord[SLZB-06P7 zb-coord-baixos]
+    Caddy -->|HTTP proxy_net| Z2MPis[Zigbee2MQTT pis]
+    Z2MPis -->|MQTT proxy_net| Mosquitto
+    Z2MPis -->|TCP 10.0.20.5:6638| CoordPis[SLZB-06P7 zb-coord-pis]
     Devices[ESPHome devices] -->|MQTT 10.0.20.20:1883| Mosquitto
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
@@ -268,6 +271,9 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `Z2M_BAIXOS_NETWORK_KEY` | Zigbee network key, 16-byte array without spaces (e.g. `[13,42,...]`) — **generate once, never change after pairing devices** (changing it orphans the whole network) |
 | `Z2M_BAIXOS_PAN_ID` | Zigbee PAN ID, decimal `1`–`65527` (hex is rejected — the env value is JSON-parsed), unique per coordinator — same generate-once warning |
 | `Z2M_BAIXOS_EXT_PAN_ID` | Zigbee extended PAN ID, 8-byte array without spaces, unique per coordinator — same generate-once warning |
+| `Z2M_PIS_NETWORK_KEY` | Same as `Z2M_BAIXOS_NETWORK_KEY`, for the zb-coord-pis network — unique value |
+| `Z2M_PIS_PAN_ID` | Same as `Z2M_BAIXOS_PAN_ID`, for the zb-coord-pis network — unique value |
+| `Z2M_PIS_EXT_PAN_ID` | Same as `Z2M_BAIXOS_EXT_PAN_ID`, for the zb-coord-pis network — unique value |
 
 **dashboard/.env**
 

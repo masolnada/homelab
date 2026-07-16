@@ -38,6 +38,11 @@
         href: http://10.0.20.6/
         description: SLZB-06P7 zigbee coordinator
         siteMonitor: http://10.0.20.6/
+    - zb-coord-pis:
+        icon: mdi-zigbee
+        href: http://10.0.20.5/
+        description: SLZB-06P7 zigbee coordinator
+        siteMonitor: http://10.0.20.5/
 
 - Media:
     - Navidrome:
@@ -100,6 +105,13 @@
         siteMonitor: http://z2m-baixos:8080
         server: my-docker
         container: z2m-baixos
+    - Zigbee2MQTT (pis):
+        icon: zigbee2mqtt
+        href: https://z2m-pis.{{HOMEPAGE_VAR_DOMAIN}}
+        description: z2m-pis.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://z2m-pis:8080
+        server: my-docker
+        container: z2m-pis
     - Mosquitto:
         icon: mqtt
         description: "MQTT broker — 10.0.20.20:1883 / wss mqtt.{{HOMEPAGE_VAR_DOMAIN}}"

@@ -79,6 +79,11 @@
 		reverse_proxy z2m-baixos:8080
 	}
 
+	@z2m-pis host z2m-pis.{$DOMAIN}
+	handle @z2m-pis {
+		reverse_proxy z2m-pis:8080
+	}
+
 	handle {
 		abort
 	}
