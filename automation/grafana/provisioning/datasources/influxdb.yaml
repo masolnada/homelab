@@ -1,0 +1,21 @@
+# Flux rather than InfluxQL: it works against InfluxDB 2 token auth as-is,
+# while InfluxQL would need a DBRP mapping created with the influx CLI on the
+# server — an imperative step that cannot be committed here.
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    uid: influxdb-zigbee
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    isDefault: true
+    editable: false
+    jsonData:
+      version: Flux
+      organization: $INFLUXDB_ORG
+      defaultBucket: $INFLUXDB_BUCKET
+    secureJsonData:
+      # Interpolated from grafana's environment — never a literal, this file
+      # is committed.
+      token: $INFLUXDB_TOKEN

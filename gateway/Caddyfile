@@ -84,6 +84,11 @@
 		reverse_proxy z2m-pis:8080
 	}
 
+	@grafana host grafana.{$DOMAIN}
+	handle @grafana {
+		reverse_proxy grafana:3000
+	}
+
 	handle {
 		abort
 	}

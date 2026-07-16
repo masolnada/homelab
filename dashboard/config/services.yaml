@@ -112,6 +112,23 @@
         siteMonitor: http://z2m-pis:8080
         server: my-docker
         container: z2m-pis
+    - Grafana:
+        icon: grafana
+        href: https://grafana.{{HOMEPAGE_VAR_DOMAIN}}
+        description: grafana.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://grafana:3000
+        server: my-docker
+        container: grafana
+    - InfluxDB:
+        icon: influxdb
+        description: "Zigbee sensor metrics — internal only"
+        server: my-docker
+        container: influxdb
+    - Telegraf:
+        icon: influxdb
+        description: "MQTT → InfluxDB bridge"
+        server: my-docker
+        container: telegraf
     - Mosquitto:
         icon: mqtt
         description: "MQTT broker — 10.0.20.20:1883 / wss mqtt.{{HOMEPAGE_VAR_DOMAIN}}"

@@ -103,11 +103,98 @@ services:
     networks:
       - proxy_net
 
+  influxdb:
+    # Stay on the 2.x line — influxdb:latest is InfluxDB 3, a different product
+    # with an incompatible API.
+    image: influxdb:2.9
+    container_name: influxdb
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+      # Setup runs only against an empty influxdb_data volume. Editing these
+      # afterwards does nothing — changing org/bucket/token later means the
+      # influx CLI, or wiping the volume.
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
+      # Sensor readings are tiny; keep them indefinitely.
+      - DOCKER_INFLUXDB_INIT_RETENTION=0
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_TOKEN}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - proxy_net
+
+  telegraf:
+    image: telegraf:1.39
+    container_name: telegraf
+    restart: unless-stopped
+    depends_on:
+      mosquitto:
+        condition: service_started
+      # First-boot setup takes a few seconds; waiting avoids a burst of write
+      # errors before the token exists.
+      influxdb:
+        condition: service_healthy
+    environment:
+      - TZ=${TIMEZONE}
+      # Mosquitto has allow_anonymous false — telegraf logs in like any client.
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=${INFLUXDB_ORG}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    networks:
+      - proxy_net
+
+  grafana:
+    image: grafana/grafana:13.0
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    environment:
+      - TZ=${TIMEZONE}
+      # Applied on first boot only; after that the password lives in grafana.db
+      # (reset with `grafana-cli admin reset-admin-password`).
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      # Behind Caddy: without this, login redirects and generated links point
+      # at the container's own address.
+      - GF_SERVER_ROOT_URL=https://grafana.${DOMAIN}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      # Interpolated into the provisioned datasource at startup.
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=${INFLUXDB_ORG}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - proxy_net
+
 volumes:
   mosquitto_data:
   esphome_config:
   z2m_baixos_data:
   z2m_pis_data:
+  influxdb_data:
+  influxdb_config:
+  grafana_data:
 
 networks:
   proxy_net:
