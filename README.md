@@ -269,6 +269,8 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
 | `MQTT_USERNAME` | Mosquitto username — the container renders its password file from these at start |
 | `MQTT_PASSWORD` | Mosquitto password (same values the ESPHome devices, the hort dashboard, and Zigbee2MQTT use) |
+| `RING_LOCATION_ID` | Ring location UUID — build the ring-mqtt topics for the `mqtt-rules` sidecar. From `docker logs ring-mqtt` ("New location:") |
+| `RING_INTERCOM_ID` | Ring intercom device ID — same source ("New device:"). Both change if the intercom is re-added to the account |
 | `Z2M_BAIXOS_NETWORK_KEY` | Zigbee network key, 16-byte array without spaces (e.g. `[13,42,...]`) — **generate once, never change after pairing devices** (changing it orphans the whole network) |
 | `Z2M_BAIXOS_PAN_ID` | Zigbee PAN ID, decimal `1`–`65527` (hex is rejected — the env value is JSON-parsed), unique per coordinator — same generate-once warning |
 | `Z2M_BAIXOS_EXT_PAN_ID` | Zigbee extended PAN ID, 8-byte array without spaces, unique per coordinator — same generate-once warning |
@@ -543,3 +545,35 @@ sudo docker compose -f automation/docker-compose.yml up -d ring-mqtt
 **Re-authenticating** (only needed if the volume is lost, or Ring revokes the session): stop the container, repeat step 2, then start it again. If push/state updates silently stop working for *all* devices and a restart doesn't fix it, the wiki's troubleshooting guide recommends removing the stale "Authorized Client Device" from Ring's Control Center before re-authenticating — otherwise stale device registrations pile up and can degrade push delivery further.
 
 **RTSP streaming**: not enabled — this setup only covers events for automations. The Ring Intercom hardware itself has no camera anyway; if a future doorbell/camera needs live view, add `ports: ["8554:8554"]` plus `livestream_user`/`livestream_pass` in `config.json`.
+
+## 🔀 MQTT Rules (mqtt-rules)
+
+There is no Node-RED or Home Assistant in this homelab, so the two standing automations live in a `mqtt-rules` sidecar in the `automation/` stack: a `mosquitto_sub` loop that dispatches to `mosquitto_pub`. It reuses the `eclipse-mosquitto` image already in the stack — no custom build, no language runtime, and the whole rule set is readable in `automation/docker-compose.yml`.
+
+| Rule | Trigger | Action |
+|---|---|---|
+| **Unlock entrance** | `zigbee2mqtt-pis/entrance-button` publishes any `action` (`single`, `double`, `triple`, `quadruple`, `hold`) | `UNLOCK` → `ring/<loc>/intercom/<dev>/lock/command` |
+| **Basement chime** | `ring/<loc>/intercom/<dev>/ding/state` goes `OFF` → `ON` | `ring` → `timbre_baixos/ring` (the ESPHome Shelly 1 pulses the bell ~5s) |
+
+`RING_LOCATION_ID` / `RING_INTERCOM_ID` come from `automation/.env` and build both Ring topics.
+
+### Why the rules look defensive
+
+Two broker behaviours make the naive version misbehave, and both are load-bearing:
+
+- **ring-mqtt publishes every state with the retain flag, and repeats the full state set every 30 s.** So `ding/state ON` is not a one-shot event — it is replayed. The chime rule therefore **edge-detects `OFF`→`ON`** (a repeated `ON` does nothing) and **ignores everything in its first 3 seconds**, which is when the retained replay lands at subscribe time. Without the grace window, every `docker compose up` would ring the basement bell.
+- **z2m does *not* retain the button topic** (verified — subscribing to it fresh yields nothing). That is what makes the unlock rule safe: there is no stale retained `action` to replay a door unlock on restart. If that ever changes, the unlock rule needs the same grace treatment. The rule also ignores `action: "release"` (so a `hold` unlocks once, not twice — the WXKG11LM emits both) and empty `action` (z2m's clearing publish), plus a 3 s cooldown against duplicate presses.
+
+> **Note**: `mosquitto_sub -R` looks like the obvious fix for the retained-replay problem, but it is useless here — ring-mqtt sets the retain flag on *every* publish, so `-R` suppresses the live ding too, not just the stale one.
+
+The shell variables are written `$$VAR` in the compose file so Compose passes them through to the shell instead of interpolating them itself.
+
+### Changing or testing the rules
+
+The logic is plain POSIX shell, so it can be exercised without touching the broker — feed synthetic `topic payload` lines into the same `while read` loop with `mosquitto_pub` stubbed out, and assert on what it would have published. Worth doing for any edit: this rule set can open the front door.
+
+```bash
+sudo docker logs mqtt-rules          # prints "unlock:" / "chime:" per fired rule
+```
+
+If the subscriber ever dies the container exits non-zero and `restart: unless-stopped` reconnects it.

@@ -139,6 +139,11 @@
         description: "Ring → MQTT bridge, no web UI"
         server: my-docker
         container: ring-mqtt
+    - MQTT Rules:
+        icon: mdi-arrow-decision
+        description: "Button → unlock, ding → chime"
+        server: my-docker
+        container: mqtt-rules
 
 - Services:
     - Vaultwarden:
