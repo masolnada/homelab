@@ -62,7 +62,7 @@ graph LR
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
 - 🤖 **Hermes** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `hermes.<DOMAIN>`, daily backup to TrueNAS (no downtime). [Hermes Workspace](https://github.com/outsourc-e/hermes-workspace) at `workspace.<DOMAIN>` adds a full UI on top of the same agent (chat, file browser, terminal, skills/memory management) — it shares the `agent_data` volume and talks to the agent's gateway API (:8642, token-protected via `HERMES_API_KEY`) and dashboard API (:9119); workspace login uses `HERMES_WORKSPACE_PASSWORD`. Known limitation: the hermes dashboard's `basic_auth` (which hermes *requires* on non-loopback binds — there is no unauthenticated option) blocks the workspace from scraping a dashboard session token, so dashboard-token features (session kanban, context usage) run degraded; chat, files, skills, and memory work fully via the gateway API. Fixing this would require binding the dashboard to loopback and sharing hermes's network namespace, at the cost of the standalone `hermes.<DOMAIN>` UI.
 - 🌱 **Garden** — Hort, the dashboard for the [automated fertigation system](https://github.com/masolnada/automated-fertigation-system), at `hort.<DOMAIN>`. Static page (nginx) built straight from that repo's `dashboard/` directory; talks MQTT-over-WebSockets from the browser to the Mosquitto broker via `mqtt.<DOMAIN>` (Caddy proxies wss to `mosquitto:9001` — an HTTPS page cannot open plain `ws://`). Stateless, so no backup sidecar.
-- 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`. Two Zigbee2MQTT instances (`z2m-baixos` and `z2m-pis`) each drive an SLZB-06P7 network coordinator — "zb-coord-baixos" at `10.0.20.6:6638` and "zb-coord-pis" at `10.0.20.5:6638` (zstack over TCP — no USB passthrough). Frontends at `z2m-baixos.<DOMAIN>` / `z2m-pis.<DOMAIN>`, publishing raw JSON to `zigbee2mqtt-baixos/#` / `zigbee2mqtt-pis/#` on Mosquitto (Home Assistant discovery disabled). The networks use distinct radio channels (baixos on the default 11, pis pinned to 15) and distinct `Z2M_<NAME>_*` identity values. State (device DB, network config) lives in the `z2m_baixos_data` / `z2m_pis_data` volumes — no backup sidecar yet, so keep the `Z2M_*` network identity values safe. Sensor history is captured by **Telegraf → InfluxDB 2 → Grafana**: Telegraf subscribes to `zigbee2mqtt-baixos/+` and `zigbee2mqtt-pis/+` (single-level wildcard, so bridge and availability topics are skipped) and writes every device report to the `zigbee` bucket as measurement `zigbee`, tagged `base_topic` and `device`. It uses the classic JSON parser, which keeps numeric values and **drops strings and booleans silently** — deliberate, since it guarantees every field is a float and no device can cause a type conflict; capturing `action` / `contact` / `occupancy` later needs `json_string_fields` plus an enum processor in `automation/telegraf/telegraf.conf`. Grafana at `grafana.<DOMAIN>` provisions its InfluxDB datasource (Flux) and dashboards from git under `automation/grafana/` — dashboard JSON hard-codes the bucket name, so it must match `INFLUXDB_BUCKET`. InfluxDB and Telegraf are internal to `proxy_net` with no Caddy route. `INFLUXDB_*` and `GRAFANA_ADMIN_*` only take effect on first boot (empty `influxdb_data` / `grafana_data` volume); no backup sidecars.
+- 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`. Two Zigbee2MQTT instances (`z2m-baixos` and `z2m-pis`) each drive an SLZB-06P7 network coordinator — "zb-coord-baixos" at `10.0.20.6:6638` and "zb-coord-pis" at `10.0.20.5:6638` (zstack over TCP — no USB passthrough). Frontends at `z2m-baixos.<DOMAIN>` / `z2m-pis.<DOMAIN>`, publishing raw JSON to `zigbee2mqtt-baixos/#` / `zigbee2mqtt-pis/#` on Mosquitto (Home Assistant discovery disabled). The networks use distinct radio channels (baixos on the default 11, pis pinned to 15) and distinct `Z2M_<NAME>_*` identity values. State (device DB, network config) lives in the `z2m_baixos_data` / `z2m_pis_data` volumes — no backup sidecar yet, so keep the `Z2M_*` network identity values safe. Sensor history is captured by **Telegraf → InfluxDB 2 → Grafana**: Telegraf subscribes to `zigbee2mqtt-baixos/+` and `zigbee2mqtt-pis/+` (single-level wildcard, so bridge and availability topics are skipped) and writes every device report to the `zigbee` bucket as measurement `zigbee`, tagged `base_topic` and `device`. It uses the classic JSON parser, which keeps numeric values and **drops strings and booleans silently** — deliberate, since it guarantees every field is a float and no device can cause a type conflict; capturing `action` / `contact` / `occupancy` later needs `json_string_fields` plus an enum processor in `automation/telegraf/telegraf.conf`. A **Shelly Pro 3EM** three-phase CT meter feeds the same pipeline over stock Shelly firmware (no ESPHome) — see [⚡ Energy Metering](#-energy-metering). Grafana at `grafana.<DOMAIN>` provisions its InfluxDB datasource (Flux) and dashboards from git under `automation/grafana/` — dashboard JSON hard-codes the bucket name, so it must match `INFLUXDB_BUCKET`. InfluxDB and Telegraf are internal to `proxy_net` with no Caddy route. `INFLUXDB_*` and `GRAFANA_ADMIN_*` only take effect on first boot (empty `influxdb_data` / `grafana_data` volume); no backup sidecars.
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -99,6 +99,7 @@ graph LR
     Z2MPis -->|MQTT proxy_net| Mosquitto
     Z2MPis -->|TCP 10.0.20.5:6638| CoordPis[SLZB-06P7 zb-coord-pis]
     Devices[ESPHome devices] -->|MQTT 10.0.20.20:1883| Mosquitto
+    Shelly[Shelly Pro 3EM] -->|MQTT 10.0.20.20:1883| Mosquitto
     Homepage -.->|API| NAS[TrueNAS]
     Vaultwarden -.-|CIFS LAN| NAS
     Navidrome -.-|CIFS LAN| NAS
@@ -400,6 +401,76 @@ Cloudflare automatically creates a DNS record for `share.<DOMAIN>` pointing to t
 Immich admin → Server Settings → External domain → `https://share.<DOMAIN>`
 
 This makes Immich embed the proxy URL in generated share links.
+
+## ⚡ Energy Metering
+
+A **Shelly Pro 3EM** (`shellypro3em-34987a44fb48`) on the consumer unit measures three circuits with clamp-on CTs. It runs **stock Shelly firmware**, not ESPHome — it is configured from its own web UI, so nothing about it lives in the `my-esphome` repo. It only needs to point at the broker.
+
+### Broker settings (Shelly UI → Networks → MQTT)
+
+| Field | Value |
+|---|---|
+| Server | `10.0.20.20:1883` |
+| Client ID | `shellypro3em-34987a44fb48` (leave as the factory default — it must be unique on the broker) |
+| Username / Password | the same `MQTT_USERNAME` / `MQTT_PASSWORD` as every other device |
+
+> **Note**: "Enable `RPC over MQTT`" must stay on — the status topics below are part of the Gen2 RPC schema.
+
+### Channel assignment
+
+| Channel | Circuit | Notes |
+|---|---|---|
+| **A** | Whole-flat consumption | The main incomer — everything else is a subset of this |
+| **B** | Fireplace fan | |
+| **C** | Water heater | |
+
+Channel identity is purely physical: it is which CT clamp is on which conductor, and which voltage terminal is landed. Nothing in software asserts it, so **if the clamps are ever moved, the dashboard labels silently become wrong.**
+
+Because the same three channels repeat across every panel, the dashboard JSON is generated rather than hand-edited — the labels and colours live in one `CHANNELS` table instead of being restated nine times:
+
+```bash
+# edit the CHANNELS table at the top, then:
+python3 automation/grafana/shelly-pro-3em.gen.py > automation/grafana/dashboards/shelly-pro-3em.json
+```
+
+Grafana's file provider picks the change up within ~30 s — no restart. (The older `marcscave-temp-sensor.json` predates this and is still hand-maintained; both styles work, since only the JSON is provisioned.)
+
+### Topics and storage
+
+The Shelly publishes its own Gen2 schema, which is neither zigbee2mqtt's nor ESPHome's, so it gets its own `[[inputs.mqtt_consumer]]` blocks in `automation/telegraf/telegraf.conf`:
+
+| Topic | Cadence | Measurement | Contents |
+|---|---|---|---|
+| `<device>/status/em:0` | every internal sample (sub-second) | `shelly_em` | Instantaneous gauges: `{a,b,c}_{act_power,aprt_power,current,voltage,pf,freq}` plus `total_*` |
+| `<device>/status/emdata:0` | every 60 s | `shelly_emdata` | Monotonic lifetime counters in **watt-hours**: `{a,b,c}_total_act_energy` and `_ret_energy` |
+
+Both are tagged `device`. Telegraf's classic JSON parser drops `n_current` (null — no neutral clamp fitted) and `user_calibrated_phase` (an array); `id` is dropped explicitly since it is the component index, not a reading.
+
+The two are kept in **separate measurements on purpose**: mixing monotonic totals with gauges makes any "select all fields" panel meaningless. Per-period consumption is derived from the counters with `difference(nonNegative: true)` rather than by integrating the power series, so Telegraf restarts and scrape gaps cannot corrupt the total.
+
+### Dashboard
+
+`Energy — Shelly Pro 3EM` at `grafana.<DOMAIN>/d/shelly-pro-3em` — stat tiles for current draw, active power by channel, energy per hour, power factor, and voltage/current diagnostics.
+
+### Troubleshooting a dead channel
+
+The voltage and current panels exist for this. A healthy channel sits near 230 V with current that tracks the load; the two failure modes look quite different:
+
+| Symptom | Meaning | Fix |
+|---|---|---|
+| Voltage ~230 V, current pinned at a few tens of mA, power flat 0 W, lifetime counter frozen | The CT clamp is not sensing a conductor | Check it is plugged into the right jack, clicked fully shut, and around **one** conductor — a clamp around live *and* neutral together reads zero, since the currents cancel |
+| Voltage near 0 V (single-digit — a floating input) | That channel's voltage terminal is not landed on a live conductor | The meter cannot compute power without a voltage reference, however well the CT is fitted. Land the voltage wire |
+
+A quick way to tell a real reading from a stuck one, without waiting for the dashboard:
+
+```bash
+docker exec mosquitto mosquitto_sub -h localhost -u "$MQTT_USERNAME" -P "$MQTT_PASSWORD" \
+  -t 'shellypro3em-34987a44fb48/status/emdata:0' -v
+```
+
+Each line is a minute apart. A working channel's `*_total_act_energy` climbs by roughly `watts / 60` Wh per line; a dead one repeats the same number forever.
+
+> **Sanity check**: a resistive load (a heater element) should show a power factor near 1.0. A channel labelled as a heater but reading ~0.8 is probably sharing its circuit with a motor or a switch-mode supply — or is not the circuit you think it is.
 
 ## 🔄 Backups
 
