@@ -62,7 +62,7 @@ graph LR
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
 - 🤖 **Hermes** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `hermes.<DOMAIN>`, daily backup to TrueNAS (no downtime). [Hermes Workspace](https://github.com/outsourc-e/hermes-workspace) at `workspace.<DOMAIN>` adds a full UI on top of the same agent (chat, file browser, terminal, skills/memory management) — it shares the `agent_data` volume and talks to the agent's gateway API (:8642, token-protected via `HERMES_API_KEY`) and dashboard API (:9119); workspace login uses `HERMES_WORKSPACE_PASSWORD`. Known limitation: the hermes dashboard's `basic_auth` (which hermes *requires* on non-loopback binds — there is no unauthenticated option) blocks the workspace from scraping a dashboard session token, so dashboard-token features (session kanban, context usage) run degraded; chat, files, skills, and memory work fully via the gateway API. Fixing this would require binding the dashboard to loopback and sharing hermes's network namespace, at the cost of the standalone `hermes.<DOMAIN>` UI.
 - 🌱 **Garden** — Hort, the dashboard for the [automated fertigation system](https://github.com/masolnada/automated-fertigation-system), at `hort.<DOMAIN>`. Static page (nginx) built straight from that repo's `dashboard/` directory; talks MQTT-over-WebSockets from the browser to the Mosquitto broker via `mqtt.<DOMAIN>` (Caddy proxies wss to `mosquitto:9001` — an HTTPS page cannot open plain `ws://`). Stateless, so no backup sidecar.
-- 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`. Two Zigbee2MQTT instances (`z2m-baixos` and `z2m-pis`) each drive an SLZB-06P7 network coordinator — "zb-coord-baixos" at `10.0.20.6:6638` and "zb-coord-pis" at `10.0.20.5:6638` (zstack over TCP — no USB passthrough). Frontends at `z2m-baixos.<DOMAIN>` / `z2m-pis.<DOMAIN>`, publishing raw JSON to `zigbee2mqtt-baixos/#` / `zigbee2mqtt-pis/#` on Mosquitto (Home Assistant discovery disabled). The networks use distinct radio channels (baixos on the default 11, pis pinned to 15) and distinct `Z2M_<NAME>_*` identity values. State (device DB, network config) lives in the `z2m_baixos_data` / `z2m_pis_data` volumes — no backup sidecar yet, so keep the `Z2M_*` network identity values safe. Sensor history is captured by **Telegraf → InfluxDB 2 → Grafana**: Telegraf subscribes to `zigbee2mqtt-baixos/+` and `zigbee2mqtt-pis/+` (single-level wildcard, so bridge and availability topics are skipped) and writes every device report to the `zigbee` bucket as measurement `zigbee`, tagged `base_topic` and `device`. It uses the classic JSON parser, which keeps numeric values and **drops strings and booleans silently** — deliberate, since it guarantees every field is a float and no device can cause a type conflict; capturing `action` / `contact` / `occupancy` later needs `json_string_fields` plus an enum processor in `automation/telegraf/telegraf.conf`. Grafana at `grafana.<DOMAIN>` provisions its InfluxDB datasource (Flux) and dashboards from git under `automation/grafana/` — dashboard JSON hard-codes the bucket name, so it must match `INFLUXDB_BUCKET`. InfluxDB and Telegraf are internal to `proxy_net` with no Caddy route. `INFLUXDB_*` and `GRAFANA_ADMIN_*` only take effect on first boot (empty `influxdb_data` / `grafana_data` volume); no backup sidecars.
+- 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`. Two Zigbee2MQTT instances (`z2m-baixos` and `z2m-pis`) each drive an SLZB-06P7 network coordinator — "zb-coord-baixos" at `10.0.20.6:6638` and "zb-coord-pis" at `10.0.20.5:6638` (zstack over TCP — no USB passthrough). Frontends at `z2m-baixos.<DOMAIN>` / `z2m-pis.<DOMAIN>`, publishing raw JSON to `zigbee2mqtt-baixos/#` / `zigbee2mqtt-pis/#` on Mosquitto (Home Assistant discovery disabled). The networks use distinct radio channels (baixos on the default 11, pis pinned to 15) and distinct `Z2M_<NAME>_*` identity values. State (device DB, network config) lives in the `z2m_baixos_data` / `z2m_pis_data` volumes — no backup sidecar yet, so keep the `Z2M_*` network identity values safe. Sensor history is captured by **Telegraf → InfluxDB 2 → Grafana**: Telegraf subscribes to `zigbee2mqtt-baixos/+` and `zigbee2mqtt-pis/+` (single-level wildcard, so bridge and availability topics are skipped) and writes every device report to the `zigbee` bucket as measurement `zigbee`, tagged `base_topic` and `device`. It uses the classic JSON parser, which keeps numeric values and **drops strings and booleans silently** — deliberate, since it guarantees every field is a float and no device can cause a type conflict; capturing `action` / `contact` / `occupancy` later needs `json_string_fields` plus an enum processor in `automation/telegraf/telegraf.conf`. Grafana at `grafana.<DOMAIN>` provisions its InfluxDB datasource (Flux) and dashboards from git under `automation/grafana/` — dashboard JSON hard-codes the bucket name, so it must match `INFLUXDB_BUCKET`. InfluxDB and Telegraf are internal to `proxy_net` with no Caddy route. `INFLUXDB_*` and `GRAFANA_ADMIN_*` only take effect on first boot (empty `influxdb_data` / `grafana_data` volume); no backup sidecars. **ring-mqtt** bridges a Ring intercom/doorbell to MQTT so bell/motion events can drive automations — see [Ring Intercom](#-ring-intercom-ring-mqtt) below for the one-time auth setup. It's internal to `proxy_net` with no Caddy route (no persistent web UI — auth is a one-off CLI step) and no backup sidecar; its `ring_data` volume holds `config.json` and the self-rotating refresh token.
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -427,3 +427,48 @@ Radicale provides CardDAV contacts sync at `contacts.<DOMAIN>`. The web UI lets 
 - **iOS**: Settings → Contacts → Accounts → Add Account → Other → Add CardDAV Account. Server: `contacts.<DOMAIN>/<username>/`, then enter your username and password.
 - **Android (DAVx5)**: Install [DAVx5](https://www.davx5.com/), add account with base URL `https://contacts.<DOMAIN>/<username>/`, enter your username and password.
 - **macOS**: System Settings → Internet Accounts → Add Other Account → CardDAV. Server: `contacts.<DOMAIN>/<username>/`.
+
+## 🔔 Ring Intercom (ring-mqtt)
+
+[ring-mqtt](https://github.com/tsightler/ring-mqtt) bridges a Ring account (intercom, doorbells, alarm, etc.) to MQTT so bell/motion/lock events can drive automations. It runs in the `automation/` stack alongside Mosquitto.
+
+**Auth model — read this before assuming you need a cron job:** ring-mqtt authenticates once via a refresh token and **rotates that token itself on every use**, rewriting it into `ring-state.json` inside the `ring_data` volume. There is no env-var token and nothing to refresh manually or on a schedule — that pattern actively hurts, since repeatedly hitting the Ring API with a stale/invalid token can get the homelab's IP temporarily blocked. The only real failure mode is losing `/data` (e.g. running the container without the volume, or on a fresh volume), which throws away the token and forces re-auth.
+
+### Setup
+
+**1. Enable cameras/chimes support (required for intercoms)**
+
+Ring Intercom is classified as a camera-family device and needs `enable_cameras: true` in `config.json` — see step 2.
+
+**2. One-time interactive authentication**
+
+Run the bundled CLI tool against the same named volume the main container will use, from the homelab server:
+
+```bash
+docker run -it --rm -v automation_ring_data:/data \
+  --entrypoint /app/ring-mqtt/init-ring-mqtt.js tsightler/ring-mqtt:5.9.3
+```
+
+Enter your Ring account email/password and 2FA code when prompted. This writes `config.json` and `ring-state.json` (with the refresh token) into the volume. If the volume doesn't exist yet, Docker creates it — just make sure the name matches what compose will use (`<project>_ring_data`, i.e. `automation_ring_data` for this repo's default project name).
+
+**3. Point it at Mosquitto**
+
+Edit `config.json` in the volume (e.g. `docker run -it --rm -v automation_ring_data:/data --entrypoint vi tsightler/ring-mqtt:5.9.3 /data/config.json`) and set:
+
+```json
+"mqtt_url": "mqtt://<MQTT_USERNAME>:<MQTT_PASSWORD>@mosquitto:1883"
+```
+
+using the same credentials as `automation/.env`. URL-encode any special characters in the password.
+
+**4. Start the container**
+
+```bash
+sudo docker compose -f automation/docker-compose.yml up -d ring-mqtt
+```
+
+**Topics**: events publish under `ring/<location_id>/camera/<device_id>/...` — e.g. `ding/state` (ON = bell pressed), `motion/state`, and for intercoms `lock/state` / the unlock command topic. Full topic reference in the [ring-mqtt wiki](https://github.com/tsightler/ring-mqtt/wiki/MQTT-Device-Topics).
+
+**Re-authenticating** (only needed if the volume is lost, or Ring revokes the session): stop the container, repeat step 2, then start it again. If push/state updates silently stop working for *all* devices and a restart doesn't fix it, the wiki's troubleshooting guide recommends removing the stale "Authorized Client Device" from Ring's Control Center before re-authenticating — otherwise stale device registrations pile up and can degrade push delivery further.
+
+**RTSP streaming**: not enabled — this setup only covers events for automations. The Ring Intercom hardware itself has no camera anyway; if a future doorbell/camera needs live view, add `ports: ["8554:8554"]` plus `livestream_user`/`livestream_pass` in `config.json`.

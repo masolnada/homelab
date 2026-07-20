@@ -103,6 +103,23 @@ services:
     networks:
       - proxy_net
 
+  ring-mqtt:
+    image: tsightler/ring-mqtt:5.9.3
+    container_name: ring-mqtt
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    environment:
+      - TZ=${TIMEZONE}
+    # /data holds config.json (mqtt_url, credentials, device options) and
+    # ring-state.json (refresh token — rotated and rewritten by the container
+    # itself on every use, never touched via env vars). See README for the
+    # one-time interactive setup that populates this volume.
+    volumes:
+      - ring_data:/data
+    networks:
+      - proxy_net
+
   influxdb:
     # Stay on the 2.x line — influxdb:latest is InfluxDB 3, a different product
     # with an incompatible API.
@@ -192,6 +209,7 @@ volumes:
   esphome_config:
   z2m_baixos_data:
   z2m_pis_data:
+  ring_data:
   influxdb_data:
   influxdb_config:
   grafana_data:

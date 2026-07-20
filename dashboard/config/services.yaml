@@ -134,6 +134,11 @@
         description: "MQTT broker — 10.0.20.20:1883 / wss mqtt.{{HOMEPAGE_VAR_DOMAIN}}"
         server: my-docker
         container: mosquitto
+    - Ring Intercom:
+        icon: mdi-bell-ring
+        description: "Ring → MQTT bridge, no web UI"
+        server: my-docker
+        container: ring-mqtt
 
 - Services:
     - Vaultwarden:
