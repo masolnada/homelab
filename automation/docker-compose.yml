@@ -153,8 +153,11 @@ services:
         DING_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/ding/state"
         LOCK_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/lock/command"
 
+        # QoS 1. timbre-baixos sits on a weak link and holds a persistent
+        # session, so this lets the broker retry a lossy delivery and queue the
+        # ring if it is offline, instead of discarding it as QoS 0 did.
         pub() {
-          mosquitto_pub -h mosquitto -p 1883 \
+          mosquitto_pub -h mosquitto -p 1883 -q 1 \
             -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" -t "$$1" -m "$$2"
         }
 
