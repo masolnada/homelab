@@ -553,18 +553,21 @@ There is no Node-RED or Home Assistant in this homelab, so the two standing auto
 | Rule | Trigger | Action |
 |---|---|---|
 | **Unlock entrance** | `zigbee2mqtt-pis/entrance-button` publishes any `action` (`single`, `double`, `triple`, `quadruple`, `hold`) | `UNLOCK` → `ring/<loc>/intercom/<dev>/lock/command` |
-| **Basement chime** | `ring/<loc>/intercom/<dev>/ding/state` goes `OFF` → `ON` | `ring` → `timbre_baixos/ring` (the ESPHome Shelly 1 pulses the bell ~5s) |
+| **Basement chime** | `ring/<loc>/intercom/<dev>/ding/state` publishes `ON` (15 s cooldown) | epoch timestamp → `timbre_baixos/ring` (the ESPHome Shelly 1 strikes the gong twice, ~1 s each) |
 
 `RING_LOCATION_ID` / `RING_INTERCOM_ID` come from `automation/.env` and build both Ring topics.
 
 ### Why the rules look defensive
 
-Two broker behaviours make the naive version misbehave, and both are load-bearing:
+Three properties of the upstream topics shape the rules, and all three are load-bearing:
 
-- **ring-mqtt publishes every state with the retain flag, and repeats the full state set every 30 s.** So `ding/state ON` is not a one-shot event — it is replayed. The chime rule therefore **edge-detects `OFF`→`ON`** (a repeated `ON` does nothing) and **ignores everything in its first 3 seconds**, which is when the retained replay lands at subscribe time. Without the grace window, every `docker compose up` would ring the basement bell.
-- **z2m does *not* retain the button topic** (verified — subscribing to it fresh yields nothing). That is what makes the unlock rule safe: there is no stale retained `action` to replay a door unlock on restart. If that ever changes, the unlock rule needs the same grace treatment. The rule also ignores `action: "release"` (so a `hold` unlocks once, not twice — the WXKG11LM emits both) and empty `action` (z2m's clearing publish), plus a 3 s cooldown against duplicate presses.
+- **Neither trigger topic is retained.** Verified both ways: subscribing to `ring/#` fresh yields nothing, and ring-mqtt sets no retain flag anywhere in its source (only the `homeassistant/…` discovery configs on the broker are retained, and those come from z2m). z2m likewise does not retain the button topic. Nothing is replayed at subscribe time, so the rules need no grace window — and both subscriptions deliberately use a **clean session**: a doorbell press is a real-time event, and one that happened while the sidecar was down must never ring the bell later.
+- **ring-mqtt publishes the ding edge-only and never republishes it.** `processDing()` sets `ON`, then clears to `OFF` from a 20 s `setTimeout`; `publishDingState()` only publishes on a change. So the rule must not depend on having seen the `OFF` — an earlier version tracked the previous state, and a single missed `OFF` would have wedged the chime off *permanently and silently*. It now chimes on any `ON` with a **15 s cooldown**: shorter than the 20 s auto-clear, so a genuine second ding still rings, and stateless, so nothing can wedge.
+- **Both legs run at QoS 1.** Inbound so the broker retransmits a ding it could not hand over first time; outbound because timbre-baixos holds a persistent session, which lets mosquitto queue a ring across a Wi-Fi dropout. The queue is why the chime payload is the **publisher's epoch timestamp** rather than a fixed word: the bell drops any ring older than 30 s, so a queued one cannot wake the house minutes after whoever pressed the bell gave up. A non-timestamp payload (the device's web UI button, a hand-typed `mosquitto_pub`) has no age and always rings.
 
-> **Note**: `mosquitto_sub -R` looks like the obvious fix for the retained-replay problem, but it is useless here — ring-mqtt sets the retain flag on *every* publish, so `-R` suppresses the live ding too, not just the stale one.
+The unlock rule also ignores `action: "release"` (so a `hold` unlocks once, not twice — the WXKG11LM emits both) and empty `action` (z2m's clearing publish), plus a 3 s cooldown against duplicate presses.
+
+> **Note**: `mosquitto_sub -R` is not a substitute for any of this. It suppresses *retained* messages, and there are none on these topics.
 
 The shell variables are written `$$VAR` in the compose file so Compose passes them through to the shell instead of interpolating them itself.
 
@@ -574,6 +577,11 @@ The logic is plain POSIX shell, so it can be exercised without touching the brok
 
 ```bash
 sudo docker logs mqtt-rules          # prints "unlock:" / "chime:" per fired rule
+
+# The bell's own view — it logs every ring it receives at WARN, which is the
+# only thing that distinguishes "never delivered" from "delivered, did not ring"
+sudo docker exec mqtt-rules sh -c \
+  'mosquitto_sub -h mosquitto -u $MQTT_USERNAME -P $MQTT_PASSWORD -v -t timbre-baixos/debug'
 ```
 
 If the subscriber ever dies the container exits non-zero and `restart: unless-stopped` reconnects it.

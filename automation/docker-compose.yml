@@ -137,12 +137,18 @@ services:
     # and Ring ding -> the basement chime. Shell vars are written $$VAR so
     # compose passes them through instead of interpolating them itself.
     #
-    # ring-mqtt publishes every state with the retain flag AND repeats the full
-    # set every 30s, which makes the ding rule the delicate one: it edge-detects
-    # OFF->ON so a repeat of "ON" cannot double-chime, and ignores the first few
-    # seconds so the retained replay at subscribe time cannot chime the whole
-    # flat every restart. z2m does not retain button topics, so the unlock rule
-    # only needs a short cooldown against duplicate presses.
+    # Neither trigger topic is retained (verified: subscribing to 'ring/#' fresh
+    # yields nothing, and ring-mqtt sets no retain flag anywhere), and both
+    # subscriptions use a clean session, so nothing is replayed at subscribe
+    # time. A doorbell press is a real-time event: one that happened while this
+    # sidecar was down must never ring the bell later, which is why the session
+    # is deliberately not persistent.
+    #
+    # ring-mqtt publishes the ding edge-only — ON, then OFF exactly 20s later —
+    # and never republishes, so the rule must not depend on having seen the OFF.
+    # It chimes on any ON with a 15s cooldown instead: shorter than the 20s
+    # auto-clear, so a genuine second ding still rings, and stateless, so a
+    # missed message cannot wedge the chime off permanently.
     command:
       - /bin/sh
       - -c
@@ -153,9 +159,14 @@ services:
         DING_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/ding/state"
         LOCK_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/lock/command"
 
-        # QoS 1. timbre-baixos sits on a weak link and holds a persistent
-        # session, so this lets the broker retry a lossy delivery and queue the
-        # ring if it is offline, instead of discarding it as QoS 0 did.
+        # QoS 1 both ways. Outbound, timbre-baixos holds a persistent session so
+        # the broker retries a lossy delivery instead of discarding it as QoS 0
+        # did; inbound, QoS 1 makes the broker retransmit a ding it could not
+        # hand over first time rather than dropping it silently.
+        #
+        # The chime payload is the publisher's epoch timestamp, not a fixed
+        # word: timbre-baixos drops any ring older than 30s, so a queued one
+        # cannot wake the house minutes after whoever pressed the bell left.
         pub() {
           mosquitto_pub -h mosquitto -p 1883 -q 1 \
             -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" -t "$$1" -m "$$2"
@@ -164,20 +175,16 @@ services:
         echo "mqtt-rules: unlock <- $$BUTTON_TOPIC"
         echo "mqtt-rules: chime  <- $$DING_TOPIC"
 
-        start=$$(date +%s)
-        ding_prev=""
+        last_chime=0
         last_unlock=0
 
-        mosquitto_sub -h mosquitto -p 1883 \
+        mosquitto_sub -h mosquitto -p 1883 -q 1 \
           -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" \
           -t "$$BUTTON_TOPIC" -t "$$DING_TOPIC" -v \
         | while read -r topic payload; do
             now=$$(date +%s)
-            grace=0
-            [ $$((now - start)) -lt 3 ] && grace=1
             case "$$topic" in
               "$$BUTTON_TOPIC")
-                [ "$$grace" = 1 ] && continue
                 case "$$payload" in
                   *'"action":""'*|*'"action":"release"'*) continue ;;
                   *'"action":"'*)
@@ -189,11 +196,11 @@ services:
                 esac
                 ;;
               *)
-                if [ "$$grace" = 0 ] && [ "$$payload" = "ON" ] && [ "$$ding_prev" != "ON" ]; then
+                if [ "$$payload" = "ON" ] && [ $$((now - last_chime)) -ge 15 ]; then
+                  last_chime=$$now
                   echo "chime: ding ON"
-                  pub "$$CHIME_TOPIC" "ring"
+                  pub "$$CHIME_TOPIC" "$$now"
                 fi
-                ding_prev="$$payload"
                 ;;
             esac
           done
