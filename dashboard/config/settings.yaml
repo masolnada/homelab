@@ -9,7 +9,10 @@ layout:
   Media:
     style: row
     columns: 3
-  Automation:
+  AI:
+    style: row
+    columns: 3
+  Home Automation:
     style: row
     columns: 3
   Services:

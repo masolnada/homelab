@@ -33,16 +33,6 @@
         icon: go2rtc
         href: http://100.71.96.101:1984/
         siteMonitor: http://100.71.96.101:1984/api
-    - zb-coord-baixos:
-        icon: mdi-zigbee
-        href: http://10.0.20.6/
-        description: SLZB-06P7 zigbee coordinator
-        siteMonitor: http://10.0.20.6/
-    - zb-coord-pis:
-        icon: mdi-zigbee
-        href: http://10.0.20.5/
-        description: SLZB-06P7 zigbee coordinator
-        siteMonitor: http://10.0.20.5/
 
 - Media:
     - Navidrome:
@@ -69,7 +59,7 @@
         server: my-docker
         container: immich-server
 
-- Automation:
+- AI:
     - Hermes:
         icon: https://hermes-agent.nousresearch.com/docs/img/logo.png
         href: https://hermes.{{HOMEPAGE_VAR_DOMAIN}}
@@ -98,6 +88,8 @@
         siteMonitor: http://cpa-usage-keeper:8080
         server: my-docker
         container: cpa-usage-keeper
+
+- Home Automation:
     - Hort:
         icon: mdi-sprinkler-variant
         href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
@@ -126,6 +118,16 @@
         siteMonitor: http://z2m-pis:8080
         server: my-docker
         container: z2m-pis
+    - zb-coord-baixos:
+        icon: mdi-zigbee
+        href: http://10.0.20.6/
+        description: SLZB-06P7 zigbee coordinator
+        siteMonitor: http://10.0.20.6/
+    - zb-coord-pis:
+        icon: mdi-zigbee
+        href: http://10.0.20.5/
+        description: SLZB-06P7 zigbee coordinator
+        siteMonitor: http://10.0.20.5/
     - Grafana:
         icon: grafana
         href: https://grafana.{{HOMEPAGE_VAR_DOMAIN}}
