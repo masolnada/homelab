@@ -6,7 +6,7 @@ layout:
   Infrastructure:
     style: row
     columns: 3
-  Media:
+  Applications:
     style: row
     columns: 3
   AI:

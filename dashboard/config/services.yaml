@@ -34,7 +34,7 @@
         href: http://100.71.96.101:1984/
         siteMonitor: http://100.71.96.101:1984/api
 
-- Media:
+- Applications:
     - Navidrome:
         icon: navidrome
         href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
@@ -58,6 +58,13 @@
           version: 2
         server: my-docker
         container: immich-server
+    - Silverbullet:
+        icon: si-markdown
+        href: https://notes.{{HOMEPAGE_VAR_DOMAIN}}
+        description: notes.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://silverbullet:3000
+        server: my-docker
+        container: silverbullet
 
 - AI:
     - Hermes:
@@ -181,13 +188,6 @@
         siteMonitor: http://radicale:5232
         server: my-docker
         container: radicale
-    - Silverbullet:
-        icon: si-markdown
-        href: https://notes.{{HOMEPAGE_VAR_DOMAIN}}
-        description: notes.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://silverbullet:3000
-        server: my-docker
-        container: silverbullet
     - WebDAV:
         icon: si-webdav
         href: https://webdav.{{HOMEPAGE_VAR_DOMAIN}}
