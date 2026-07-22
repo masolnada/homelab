@@ -86,7 +86,7 @@
         container: hermes-workspace
     - CLIProxyAPI:
         icon: mdi-router-network
-        href: https://cpa.{{HOMEPAGE_VAR_DOMAIN}}
+        href: https://cpa.{{HOMEPAGE_VAR_DOMAIN}}/management.html
         description: cpa.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://cli-proxy-api:8317
         server: my-docker
