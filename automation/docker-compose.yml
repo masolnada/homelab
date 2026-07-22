@@ -133,9 +133,10 @@ services:
       - MQTT_PASSWORD=${MQTT_PASSWORD}
       - RING_LOCATION_ID=${RING_LOCATION_ID}
       - RING_INTERCOM_ID=${RING_INTERCOM_ID}
-    # Two standing rules, no rules engine: entrance-button -> intercom unlock,
-    # and Ring ding -> the basement chime. Shell vars are written $$VAR so
-    # compose passes them through instead of interpolating them itself.
+    # Three standing rules, no rules engine: entrance-button -> intercom unlock,
+    # Ring ding -> the basement chime, and door unlocked -> the stair light.
+    # Shell vars are written $$VAR so compose passes them through instead of
+    # interpolating them itself.
     #
     # Neither trigger topic is retained (verified: subscribing to 'ring/#' fresh
     # yields nothing, and ring-mqtt sets no retain flag anywhere), and both
@@ -156,8 +157,20 @@ services:
         set -u
         BUTTON_TOPIC="zigbee2mqtt-pis/entrance-button"
         CHIME_TOPIC="timbre_baixos/ring"
+        # Reuses llum-escala's own auto_trigger handler, which turns the relay
+        # on and starts its 5-min auto_off_5min timer. It self-gates to the
+        # window from 1 h before sunset until sunrise, and no-ops outside it, so
+        # a midday unlock leaves the stair light off.
+        LIGHT_TOPIC="llum_escala/auto_trigger"
         DING_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/ding/state"
         LOCK_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/lock/command"
+        # The light fires when the intercom actually unlocks (state UNLOCKED),
+        # not on the ding. This covers a manual unlock from the Ring app and the
+        # entrance-button path alike, since that button unlocks via LOCK_TOPIC
+        # and ring-mqtt then reports the same UNLOCKED state. The unlock is
+        # momentary (UNLOCKED, then LOCKED), so the rule keys off the UNLOCKED
+        # edge with its own cooldown.
+        LOCK_STATE_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/lock/state"
 
         # QoS 1 both ways. Outbound, timbre-baixos holds a persistent session so
         # the broker retries a lossy delivery instead of discarding it as QoS 0
@@ -174,13 +187,15 @@ services:
 
         echo "mqtt-rules: unlock <- $$BUTTON_TOPIC"
         echo "mqtt-rules: chime  <- $$DING_TOPIC"
+        echo "mqtt-rules: light  <- $$LOCK_STATE_TOPIC"
 
         last_chime=0
         last_unlock=0
+        last_light=0
 
         mosquitto_sub -h mosquitto -p 1883 -q 1 \
           -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" \
-          -t "$$BUTTON_TOPIC" -t "$$DING_TOPIC" -v \
+          -t "$$BUTTON_TOPIC" -t "$$DING_TOPIC" -t "$$LOCK_STATE_TOPIC" -v \
         | while read -r topic payload; do
             now=$$(date +%s)
             case "$$topic" in
@@ -195,11 +210,18 @@ services:
                     ;;
                 esac
                 ;;
-              *)
+              "$$DING_TOPIC")
                 if [ "$$payload" = "ON" ] && [ $$((now - last_chime)) -ge 15 ]; then
                   last_chime=$$now
                   echo "chime: ding ON"
                   pub "$$CHIME_TOPIC" "$$now"
+                fi
+                ;;
+              "$$LOCK_STATE_TOPIC")
+                if [ "$$payload" = "UNLOCKED" ] && [ $$((now - last_light)) -ge 15 ]; then
+                  last_light=$$now
+                  echo "light: door UNLOCKED"
+                  pub "$$LIGHT_TOPIC" "$$now"
                 fi
                 ;;
             esac
