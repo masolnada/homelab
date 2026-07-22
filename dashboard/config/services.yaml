@@ -84,6 +84,20 @@
         siteMonitor: http://hermes-workspace:3000
         server: my-docker
         container: hermes-workspace
+    - CLIProxyAPI:
+        icon: mdi-router-network
+        href: https://cpa.{{HOMEPAGE_VAR_DOMAIN}}
+        description: cpa.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://cli-proxy-api:8317
+        server: my-docker
+        container: cli-proxy-api
+    - CPA Usage Keeper:
+        icon: mdi-chart-box
+        href: https://usage.{{HOMEPAGE_VAR_DOMAIN}}
+        description: usage.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://cpa-usage-keeper:8080
+        server: my-docker
+        container: cpa-usage-keeper
     - Hort:
         icon: mdi-sprinkler-variant
         href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
