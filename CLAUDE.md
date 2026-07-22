@@ -12,7 +12,7 @@ ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo git pull"
 # Restart a specific stack after pulling
 ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo docker compose -f <stack>/docker-compose.yml up -d"
 
-# Start all stacks in order (gateway → security → media → contacts → notes → agent → garden → automation → dashboard)
+# Start all stacks in order (gateway → security → media → contacts → notes → agent → cpa → garden → automation → dashboard)
 ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo ./start.sh"
 ```
 
@@ -20,10 +20,11 @@ README-only changes don't need a stack restart.
 
 ## Architecture
 
-Six independent Docker Compose stacks share a single `proxy_net` bridge network:
+The independent Docker Compose stacks share a single `proxy_net` bridge network:
 
 - **gateway/** — Tailscale sidecar + Caddy (custom build with Cloudflare DNS plugin). Caddy uses `network_mode: service:tailscale` to share its network namespace. TLS via DNS-01 challenge with Cloudflare.
 - **security/** — Vaultwarden + backup sidecar (daily CIFS backup to TrueNAS, pauses container during backup)
+- **cpa/** — CLIProxyAPI (shared LLM proxy at `cpa.<DOMAIN>`) + cpa-usage-keeper (usage dashboard at `usage.<DOMAIN>`) + backup sidecar. OAuth logins are done off-box and tokens `scp`-ed into `cpa/auths/`; `config.yaml` (gitignored) holds provider keys. Mirrored in the `agent-station` repo.
 - **media/** — Jellyfin (video streaming) and Navidrome (music streaming). Both mount the NAS media share read-only.
 - **downloads/** — qBittorrent. Mounts full NAS media share.
 - **dashboard/** — Homepage + Docker socket proxy (Tecnativa). Homepage connects to the proxy over TCP:2375, never touches the Docker socket directly.

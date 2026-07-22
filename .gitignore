@@ -5,6 +5,15 @@
 # Docker runtime
 docker-compose.override.yml
 
+# CPA stack runtime (live config holds keys; auths hold OAuth tokens)
+cpa/config.yaml
+cpa/auths/*
+!cpa/auths/.gitkeep
+cpa/logs/*
+!cpa/logs/.gitkeep
+cpa/keeper/*
+!cpa/keeper/.gitkeep
+
 # SSH deploy keys (generated per-server, never committed)
 deploy_key
 deploy_key.pub

@@ -59,6 +59,16 @@
 		reverse_proxy hermes-workspace:3000
 	}
 
+	@cpa host cpa.{$DOMAIN}
+	handle @cpa {
+		reverse_proxy cli-proxy-api:8317
+	}
+
+	@usage host usage.{$DOMAIN}
+	handle @usage {
+		reverse_proxy cpa-usage-keeper:8080
+	}
+
 	@hort host hort.{$DOMAIN}
 	handle @hort {
 		reverse_proxy hort:80
