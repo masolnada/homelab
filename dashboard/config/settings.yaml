@@ -14,6 +14,21 @@ layout:
     columns: 3
   Home Automation:
     style: row
+    columns: 4
+  Core:
+    style: row
+    columns: 2
+  Baixos:
+    style: row
+    columns: 2
+  Pis:
+    style: row
+    columns: 2
+  Data:
+    style: row
+    columns: 3
+  MQTT & Bridges:
+    style: row
     columns: 3
   Services:
     style: row

@@ -90,76 +90,81 @@
         container: cpa-usage-keeper
 
 - Home Automation:
-    - Hort:
-        icon: mdi-sprinkler-variant
-        href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
-        description: hort.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://hort:80
-        server: my-docker
-        container: hort
-    - ESPHome:
-        icon: esphome
-        href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
-        description: esphome.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://esphome:6052
-        server: my-docker
-        container: esphome
-    - Zigbee2MQTT (baixos):
-        icon: zigbee2mqtt
-        href: https://z2m-baixos.{{HOMEPAGE_VAR_DOMAIN}}
-        description: z2m-baixos.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://z2m-baixos:8080
-        server: my-docker
-        container: z2m-baixos
-    - Zigbee2MQTT (pis):
-        icon: zigbee2mqtt
-        href: https://z2m-pis.{{HOMEPAGE_VAR_DOMAIN}}
-        description: z2m-pis.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://z2m-pis:8080
-        server: my-docker
-        container: z2m-pis
-    - zb-coord-baixos:
-        icon: mdi-zigbee
-        href: http://10.0.20.6/
-        description: SLZB-06P7 zigbee coordinator
-        siteMonitor: http://10.0.20.6/
-    - zb-coord-pis:
-        icon: mdi-zigbee
-        href: http://10.0.20.5/
-        description: SLZB-06P7 zigbee coordinator
-        siteMonitor: http://10.0.20.5/
-    - Grafana:
-        icon: grafana
-        href: https://grafana.{{HOMEPAGE_VAR_DOMAIN}}
-        description: grafana.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://grafana:3000
-        server: my-docker
-        container: grafana
-    - InfluxDB:
-        icon: influxdb
-        description: "Zigbee sensor metrics — internal only"
-        server: my-docker
-        container: influxdb
-    - Telegraf:
-        icon: influxdb
-        description: "MQTT → InfluxDB bridge"
-        server: my-docker
-        container: telegraf
-    - Mosquitto:
-        icon: mqtt
-        description: "MQTT broker — 10.0.20.20:1883 / wss mqtt.{{HOMEPAGE_VAR_DOMAIN}}"
-        server: my-docker
-        container: mosquitto
-    - Ring Intercom:
-        icon: mdi-bell-ring
-        description: "Ring → MQTT bridge, no web UI"
-        server: my-docker
-        container: ring-mqtt
-    - MQTT Rules:
-        icon: mdi-arrow-decision
-        description: "Button → unlock, ding → chime"
-        server: my-docker
-        container: mqtt-rules
+    - Core:
+        - Hort:
+            icon: mdi-sprinkler-variant
+            href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
+            description: hort.{{HOMEPAGE_VAR_DOMAIN}}
+            siteMonitor: http://hort:80
+            server: my-docker
+            container: hort
+        - ESPHome:
+            icon: esphome
+            href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
+            description: esphome.{{HOMEPAGE_VAR_DOMAIN}}
+            siteMonitor: http://esphome:6052
+            server: my-docker
+            container: esphome
+    - Baixos:
+        - Zigbee2MQTT (baixos):
+            icon: zigbee2mqtt
+            href: https://z2m-baixos.{{HOMEPAGE_VAR_DOMAIN}}
+            description: z2m-baixos.{{HOMEPAGE_VAR_DOMAIN}}
+            siteMonitor: http://z2m-baixos:8080
+            server: my-docker
+            container: z2m-baixos
+        - zb-coord-baixos:
+            icon: mdi-zigbee
+            href: http://10.0.20.6/
+            description: SLZB-06P7 zigbee coordinator
+            siteMonitor: http://10.0.20.6/
+    - Pis:
+        - Zigbee2MQTT (pis):
+            icon: zigbee2mqtt
+            href: https://z2m-pis.{{HOMEPAGE_VAR_DOMAIN}}
+            description: z2m-pis.{{HOMEPAGE_VAR_DOMAIN}}
+            siteMonitor: http://z2m-pis:8080
+            server: my-docker
+            container: z2m-pis
+        - zb-coord-pis:
+            icon: mdi-zigbee
+            href: http://10.0.20.5/
+            description: SLZB-06P7 zigbee coordinator
+            siteMonitor: http://10.0.20.5/
+    - Data:
+        - Grafana:
+            icon: grafana
+            href: https://grafana.{{HOMEPAGE_VAR_DOMAIN}}
+            description: grafana.{{HOMEPAGE_VAR_DOMAIN}}
+            siteMonitor: http://grafana:3000
+            server: my-docker
+            container: grafana
+        - InfluxDB:
+            icon: influxdb
+            description: "Zigbee sensor metrics — internal only"
+            server: my-docker
+            container: influxdb
+        - Telegraf:
+            icon: influxdb
+            description: "MQTT → InfluxDB bridge"
+            server: my-docker
+            container: telegraf
+    - MQTT & Bridges:
+        - Mosquitto:
+            icon: mqtt
+            description: "MQTT broker — 10.0.20.20:1883 / wss mqtt.{{HOMEPAGE_VAR_DOMAIN}}"
+            server: my-docker
+            container: mosquitto
+        - Ring Intercom:
+            icon: mdi-bell-ring
+            description: "Ring → MQTT bridge, no web UI"
+            server: my-docker
+            container: ring-mqtt
+        - MQTT Rules:
+            icon: mdi-arrow-decision
+            description: "Button → unlock, ding → chime"
+            server: my-docker
+            container: mqtt-rules
 
 - Services:
     - Vaultwarden:
