@@ -11,3 +11,15 @@ providers:
     options:
       path: /var/lib/grafana/dashboards
       foldersFromFilesStructure: false
+
+  # Fertigation dashboards, deployed from the automated-fertigation-system repo.
+  # Own path so it does not overlap the recursive scan of the provider above.
+  - name: hort
+    folder: Hort
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards-hort
+      foldersFromFilesStructure: false

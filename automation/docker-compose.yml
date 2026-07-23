@@ -284,6 +284,15 @@ services:
       - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
     volumes:
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      # Drop-in inputs from other repos (e.g. the fertigation flow sensor) are
+      # deployed here and merged alongside the main config.
+      - ./telegraf/telegraf.d:/etc/telegraf/telegraf.d:ro
+    # Load the drop-in directory in addition to the main file. They share the
+    # single influxdb_v2 output defined in telegraf.conf.
+    command: >
+      telegraf
+      --config /etc/telegraf/telegraf.conf
+      --config-directory /etc/telegraf/telegraf.d
     networks:
       - proxy_net
 
@@ -313,6 +322,10 @@ services:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      # Separate mount, NOT nested under ./grafana/dashboards: the default
+      # provider scans that path recursively, so a nested dir would double-load
+      # the dashboard. Its own provider (folder Hort) owns this path.
+      - ./grafana/dashboards-hort:/var/lib/grafana/dashboards-hort:ro
     networks:
       - proxy_net
 
