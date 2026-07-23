@@ -164,13 +164,14 @@ services:
         LIGHT_TOPIC="llum_escala/auto_trigger"
         DING_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/ding/state"
         LOCK_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/lock/command"
-        # The light fires when the intercom actually unlocks (state UNLOCKED),
-        # not on the ding. This covers a manual unlock from the Ring app and the
-        # entrance-button path alike, since that button unlocks via LOCK_TOPIC
-        # and ring-mqtt then reports the same UNLOCKED state. The unlock is
-        # momentary (UNLOCKED, then LOCKED), so the rule keys off the UNLOCKED
-        # edge with its own cooldown.
-        LOCK_STATE_TOPIC="ring/$${RING_LOCATION_ID}/intercom/$${RING_INTERCOM_ID}/lock/state"
+        # The light fires on the MQTT unlock COMMAND, not on lock/state. The
+        # Ring app unlocks the intercom out-of-band and ring-mqtt never sees it
+        # (verified: an app unlock publishes nothing, and lock/state UNLOCKED is
+        # only ever ring-mqtt's own synthetic echo after IT unlocks). So the
+        # door must be unlocked over MQTT: anything publishing UNLOCK to
+        # LOCK_TOPIC (the entrance button here, or a dashboard/app) both opens
+        # the door and, via this same subscription, lights the stairs. Keyed off
+        # the UNLOCK edge with its own cooldown.
 
         # QoS 1 both ways. Outbound, timbre-baixos holds a persistent session so
         # the broker retries a lossy delivery instead of discarding it as QoS 0
@@ -187,7 +188,7 @@ services:
 
         echo "mqtt-rules: unlock <- $$BUTTON_TOPIC"
         echo "mqtt-rules: chime  <- $$DING_TOPIC"
-        echo "mqtt-rules: light  <- $$LOCK_STATE_TOPIC"
+        echo "mqtt-rules: light  <- $$LOCK_TOPIC (UNLOCK)"
 
         last_chime=0
         last_unlock=0
@@ -195,7 +196,7 @@ services:
 
         mosquitto_sub -h mosquitto -p 1883 -q 1 \
           -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" \
-          -t "$$BUTTON_TOPIC" -t "$$DING_TOPIC" -t "$$LOCK_STATE_TOPIC" -v \
+          -t "$$BUTTON_TOPIC" -t "$$DING_TOPIC" -t "$$LOCK_TOPIC" -v \
         | while read -r topic payload; do
             now=$$(date +%s)
             case "$$topic" in
@@ -217,10 +218,10 @@ services:
                   pub "$$CHIME_TOPIC" "$$now"
                 fi
                 ;;
-              "$$LOCK_STATE_TOPIC")
-                if [ "$$payload" = "UNLOCKED" ] && [ $$((now - last_light)) -ge 15 ]; then
+              "$$LOCK_TOPIC")
+                if [ "$$payload" = "UNLOCK" ] && [ $$((now - last_light)) -ge 15 ]; then
                   last_light=$$now
-                  echo "light: door UNLOCKED"
+                  echo "light: unlock command"
                   pub "$$LIGHT_TOPIC" "$$now"
                 fi
                 ;;
