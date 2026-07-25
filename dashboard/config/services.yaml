@@ -88,13 +88,13 @@
         siteMonitor: http://cli-proxy-api:8317
         server: my-docker
         container: cli-proxy-api
-    - CPA Usage Keeper:
+    - CPA Manager Plus:
         icon: mdi-chart-box
-        href: https://usage.{{HOMEPAGE_VAR_DOMAIN}}
-        description: usage.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://cpa-usage-keeper:8080
+        href: https://cpamp.{{HOMEPAGE_VAR_DOMAIN}}/management.html
+        description: cpamp.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://cpa-manager-plus:18317/health
         server: my-docker
-        container: cpa-usage-keeper
+        container: cpa-manager-plus
 
 - Home Automation:
     - Core:

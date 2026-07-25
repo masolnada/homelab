@@ -13,6 +13,8 @@ cpa/logs/*
 !cpa/logs/.gitkeep
 cpa/keeper/*
 !cpa/keeper/.gitkeep
+cpa/manager/*
+!cpa/manager/.gitkeep
 
 # SSH deploy keys (generated per-server, never committed)
 deploy_key
