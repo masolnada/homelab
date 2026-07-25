@@ -83,7 +83,7 @@
         container: hermes-workspace
     - CLIProxyAPI:
         icon: mdi-router-network
-        href: https://cpa.{{HOMEPAGE_VAR_DOMAIN}}/management.html
+        href: https://cpa.{{HOMEPAGE_VAR_DOMAIN}}/
         description: cpa.{{HOMEPAGE_VAR_DOMAIN}}
         siteMonitor: http://cli-proxy-api:8317
         server: my-docker
@@ -172,6 +172,16 @@
             description: "Button → unlock, ding → chime"
             server: my-docker
             container: mqtt-rules
+
+- 3D Printing:
+    - K1C:
+        icon: mdi-printer-3d
+        href: http://10.0.50.70/
+        description: Creality K1C — Mainsail
+        siteMonitor: http://10.0.50.70/
+        widget:
+          type: moonraker
+          url: http://10.0.50.70:7125
 
 - Services:
     - Vaultwarden:
