@@ -88,7 +88,6 @@
       },
       "id": 2,
       "options": {
-        "xField": "_time",
         "orientation": "auto",
         "showValue": "auto",
         "stacking": "none",
@@ -332,5 +331,5 @@
   "timezone": "browser",
   "title": "Hort \u00b7 Fertigation",
   "uid": "hort-fertigation",
-  "version": 3
+  "version": 4
 }
