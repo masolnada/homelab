@@ -44,7 +44,7 @@
   "annotations": {
     "list": []
   },
-  "description": "YF-B5 flow sensor \u2014 water used per configurable interval, range total, and device warnings/errors.",
+  "description": "YF-B5 flow sensor \u2014 water used per configurable interval, range total, time since last watering, and device warnings/errors.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -136,7 +136,7 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 8,
+        "w": 6,
         "x": 0,
         "y": 9
       },
@@ -166,6 +166,57 @@
         }
       ],
       "title": "Water used (selected range)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influxdb-zigbee"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "unit": "dtdurationms",
+          "decimals": 0,
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 9
+      },
+      "id": 5,
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb-zigbee"
+          },
+          "query": "last = from(bucket: v.defaultBucket)\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"esphome_sensor\")\n  |> filter(fn: (r) => r.entity == \"total_water\" and r._field == \"value\")\n  |> sort(columns: [\"_time\"])\n  |> difference(nonNegative: true)\n  |> filter(fn: (r) => r._value > 0.0)\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: int(v: now()) - int(v: r._time)) / 1000000.0}))\n  |> keep(columns: [\"_time\", \"_value\"])\nlast",
+          "refId": "A"
+        }
+      ],
+      "title": "Time since last watering",
       "type": "stat"
     },
     {
@@ -235,8 +286,8 @@
       },
       "gridPos": {
         "h": 9,
-        "w": 16,
-        "x": 8,
+        "w": 12,
+        "x": 12,
         "y": 9
       },
       "id": 4,
@@ -323,5 +374,5 @@
   "timezone": "browser",
   "title": "Hort \u00b7 Fertigation",
   "uid": "hort-fertigation",
-  "version": 5
+  "version": 6
 }
