@@ -111,7 +111,7 @@
             "type": "influxdb",
             "uid": "influxdb-zigbee"
           },
-          "query": "interval = duration(v: \"${water_interval}\")\nfrom(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"esphome_sensor\")\n  |> filter(fn: (r) => r.entity == \"total_water\" and r._field == \"value\")\n  |> sort(columns: [\"_time\"])\n  |> difference(nonNegative: true)\n  |> aggregateWindow(every: interval, fn: sum, createEmpty: true)\n  |> fill(column: \"_value\", value: 0.0)",
+          "query": "selected = \"${water_interval}\"\ninterval =\n  if selected == \"15m\" then 15m\n  else if selected == \"1h\" then 1h\n  else if selected == \"6h\" then 6h\n  else if selected == \"1d\" then 1d\n  else if selected == \"7d\" then 7d\n  else 1h\nfrom(bucket: v.defaultBucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"esphome_sensor\")\n  |> filter(fn: (r) => r.entity == \"total_water\" and r._field == \"value\")\n  |> sort(columns: [\"_time\"])\n  |> difference(nonNegative: true)\n  |> aggregateWindow(every: interval, fn: sum, createEmpty: true)\n  |> fill(column: \"_value\", value: 0.0)",
           "refId": "A"
         }
       ],
@@ -332,5 +332,5 @@
   "timezone": "browser",
   "title": "Hort \u00b7 Fertigation",
   "uid": "hort-fertigation",
-  "version": 2
+  "version": 3
 }
