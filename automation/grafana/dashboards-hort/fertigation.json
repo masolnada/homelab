@@ -59,24 +59,14 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "fixed",
-            "fixedColor": "black"
+            "mode": "palette-classic"
           },
           "custom": {
             "lineWidth": 1,
             "fillOpacity": 80,
             "gradientMode": "none"
           },
-          "unit": "litre",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "black",
-                "value": null
-              }
-            ]
-          }
+          "unit": "litre"
         },
         "overrides": []
       },
@@ -93,11 +83,13 @@
         "stacking": "none",
         "groupWidth": 0.7,
         "barWidth": 0.9,
-        "xTickLabelRotation": -45,
+        "xTickLabelRotation": 0,
         "xTickLabelSpacing": 100,
         "legend": {
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
         },
         "tooltip": {
           "mode": "single",
@@ -331,5 +323,5 @@
   "timezone": "browser",
   "title": "Hort \u00b7 Fertigation",
   "uid": "hort-fertigation",
-  "version": 4
+  "version": 5
 }
