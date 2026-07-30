@@ -74,6 +74,11 @@
 		reverse_proxy hort:80
 	}
 
+	@hort2 host hort2.{$DOMAIN}
+	handle @hort2 {
+		reverse_proxy hort2:80
+	}
+
 	@mqtt host mqtt.{$DOMAIN}
 	handle @mqtt {
 		reverse_proxy mosquitto:9001
