@@ -105,6 +105,13 @@
             siteMonitor: http://hort:80
             server: my-docker
             container: hort
+        - Hort 2:
+            icon: mdi-sprinkler-variant
+            href: https://hort2.{{HOMEPAGE_VAR_DOMAIN}}
+            description: hort2.{{HOMEPAGE_VAR_DOMAIN}}
+            siteMonitor: http://hort2:80
+            server: my-docker
+            container: hort2
         - ESPHome:
             icon: esphome
             href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
