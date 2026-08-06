@@ -1,32 +1,25 @@
 services:
   hort:
     build:
-      context: https://github.com/masolnada/automated-fertigation-system.git#main:dashboard
-      dockerfile: Containerfile
+      context: https://github.com/masolnada/automated-fertigation-system.git#main:web
+      dockerfile: apps/dashboard/Containerfile
     container_name: hort
     restart: unless-stopped
-    environment:
-      - MQTT_URL=wss://mqtt.${DOMAIN}
-      - MQTT_USERNAME=${MQTT_USERNAME}
-      - MQTT_PASSWORD=${MQTT_PASSWORD}
-      - MQTT_PREFIX=kc868-a8
     networks:
       - proxy_net
 
-  # Bun/React port of the dashboard, running alongside hort for validation
-  # before cutover. Build context is the web/ workspace root so the multi-stage
-  # image can see the lockfile and both packages.
-  hort2:
+  hort-server:
     build:
       context: https://github.com/masolnada/automated-fertigation-system.git#main:web
-      dockerfile: apps/dashboard/Containerfile
-    container_name: hort2
+      dockerfile: apps/server/Containerfile
+    container_name: hort-server
     restart: unless-stopped
     environment:
-      - MQTT_URL=wss://mqtt.${DOMAIN}
+      - MQTT_URL=mqtt://mosquitto:1883
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
       - MQTT_PREFIX=kc868-a8
+      - PORT=4000
     networks:
       - proxy_net
 

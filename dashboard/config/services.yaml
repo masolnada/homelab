@@ -88,13 +88,6 @@
         siteMonitor: http://cli-proxy-api:8317
         server: my-docker
         container: cli-proxy-api
-    - CPA Manager Plus:
-        icon: mdi-chart-box
-        href: https://cpamp.{{HOMEPAGE_VAR_DOMAIN}}/management.html
-        description: cpamp.{{HOMEPAGE_VAR_DOMAIN}}
-        siteMonitor: http://cpa-manager-plus:18317/health
-        server: my-docker
-        container: cpa-manager-plus
 
 - Home Automation:
     - Core:
@@ -105,13 +98,6 @@
             siteMonitor: http://hort:80
             server: my-docker
             container: hort
-        - Hort 2:
-            icon: mdi-sprinkler-variant
-            href: https://hort2.{{HOMEPAGE_VAR_DOMAIN}}
-            description: hort2.{{HOMEPAGE_VAR_DOMAIN}}
-            siteMonitor: http://hort2:80
-            server: my-docker
-            container: hort2
         - ESPHome:
             icon: esphome
             href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}

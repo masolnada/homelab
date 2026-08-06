@@ -71,12 +71,13 @@
 
 	@hort host hort.{$DOMAIN}
 	handle @hort {
-		reverse_proxy hort:80
-	}
-
-	@hort2 host hort2.{$DOMAIN}
-	handle @hort2 {
-		reverse_proxy hort2:80
+		route {
+			@hort_api path /api/*
+			reverse_proxy @hort_api hort-server:4000 {
+				flush_interval -1
+			}
+			reverse_proxy hort:80
+		}
 	}
 
 	@mqtt host mqtt.{$DOMAIN}
