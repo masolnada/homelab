@@ -19,3 +19,7 @@ cpa/manager/*
 # SSH deploy keys (generated per-server, never committed)
 deploy_key
 deploy_key.pub
+
+# Local agent runtime/settings (machine-specific)
+.claude/settings.local.json
+.claude/*.lock
