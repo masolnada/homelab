@@ -69,17 +69,6 @@
 		reverse_proxy cpa-manager-plus:18317
 	}
 
-	@hort host hort.{$DOMAIN}
-	handle @hort {
-		route {
-			@hort_api path /api/*
-			reverse_proxy @hort_api hort-server:4000 {
-				flush_interval -1
-			}
-			reverse_proxy hort:80
-		}
-	}
-
 	@mqtt host mqtt.{$DOMAIN}
 	handle @mqtt {
 		reverse_proxy mosquitto:9001

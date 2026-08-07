@@ -93,11 +93,8 @@
     - Core:
         - Hort:
             icon: mdi-sprinkler-variant
-            href: https://hort.{{HOMEPAGE_VAR_DOMAIN}}
-            description: hort.{{HOMEPAGE_VAR_DOMAIN}}
-            siteMonitor: http://hort:80
-            server: my-docker
-            container: hort
+            href: https://dashboard.safs.milverds.com
+            description: dashboard.safs.milverds.com
         - ESPHome:
             icon: esphome
             href: https://esphome.{{HOMEPAGE_VAR_DOMAIN}}
