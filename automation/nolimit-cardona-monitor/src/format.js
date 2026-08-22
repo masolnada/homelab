@@ -79,8 +79,8 @@ export function formatSchedule(sessions, from, until) {
     const time = timeFmt.format(start);
     const status =
       s.freeSpots <= 0
-        ? `\ud83d\udeab 0/${s.max}${s.hasWaitingList ? " (WL)" : ""}`
-        : `\u2705 ${s.freeSpots}/${s.max}`;
+        ? `\ud83d\udeab ${s.max}/${s.max}${s.hasWaitingList ? " (WL)" : ""}`
+        : `\u2705 ${s.max - s.freeSpots}/${s.max}`;
     parts.push(`${time} <b>${escapeHtml(s.title)}</b> - ${status}`);
   }
   return parts.join("\n");
@@ -90,9 +90,9 @@ export function spotsText(session) {
   if (session.max <= 0) return "";
   if (session.freeSpots <= 0) {
     const wl = session.hasWaitingList ? " (waiting list)" : "";
-    return `🚫 Full - 0/${session.max}${wl}`;
+    return `🚫 Full - ${session.max}/${session.max}${wl}`;
   }
-  return `✅ ${session.freeSpots}/${session.max} spots free`;
+  return `✅ ${session.max - session.freeSpots}/${session.max} booked`;
 }
 
 // Multi-line detail block for one class. `lead` overrides the second line
