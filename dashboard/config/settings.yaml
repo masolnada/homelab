@@ -30,6 +30,9 @@ layout:
   MQTT & Bridges:
     style: row
     columns: 3
+  Bots:
+    style: row
+    columns: 3
   Services:
     style: row
     columns: 3

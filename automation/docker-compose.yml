@@ -330,6 +330,24 @@ services:
     networks:
       - proxy_net
 
+  nolimit-cardona-monitor:
+    build: ./nolimit-cardona-monitor
+    image: nolimit-cardona-monitor:local
+    container_name: nolimit-cardona-monitor
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+      # Optional seed chat; the bot also auto-subscribes any chat it joins or
+      # that sends /start or /gym. Leave empty to start with no subscribers.
+      - TELEGRAM_CHAT_ID=${NOLIMIT_TELEGRAM_CHAT_ID}
+      - TELEGRAM_BOT_TOKEN=${NOLIMIT_TELEGRAM_BOT_TOKEN}
+    # Outbound only (trainin.app + Telegram); no inbound ports. State and the
+    # subscriber list persist here.
+    volumes:
+      - nolimit_cardona_data:/data
+    networks:
+      - proxy_net
+
 volumes:
   mosquitto_data:
   esphome_config:
@@ -339,6 +357,7 @@ volumes:
   influxdb_data:
   influxdb_config:
   grafana_data:
+  nolimit_cardona_data:
 
 networks:
   proxy_net:

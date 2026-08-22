@@ -173,6 +173,13 @@
           type: moonraker
           url: http://10.0.50.70:7125
 
+- Bots:
+    - No Limit Cardona:
+        icon: mdi-dumbbell
+        description: "Gym class monitor — Telegram bot, no web UI"
+        server: my-docker
+        container: nolimit-cardona-monitor
+
 - Services:
     - Vaultwarden:
         icon: vaultwarden

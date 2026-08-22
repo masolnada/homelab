@@ -1,0 +1,14 @@
+{
+  "name": "nolimit-cardona-monitor",
+  "version": "1.0.0",
+  "description": "Monitors the No Limit Cardona (Trainin) class schedule and notifies changes via Telegram",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node src/index.js --once"
+  },
+  "license": "MIT"
+}
