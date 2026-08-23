@@ -497,3 +497,16 @@ openai-compatibility:
       - name: "z-ai/glm-5.2"
         alias: "glm-5.2"
         display-name: "GLM 5.2 (OpenRouter)"
+
+  # --- DeepSeek provider (OpenAI-compatible upstream) ---
+  - name: "deepseek"
+    base-url: "https://api.deepseek.com"
+    api-key-entries:
+      - api-key: "sk-REPLACE_ME"
+    models:
+      - name: "deepseek-v4-pro"
+        alias: "deepseek-v4-pro"
+        display-name: "DeepSeek V4 Pro"
+      - name: "deepseek-v4-flash"
+        alias: "deepseek-v4-flash"
+        display-name: "DeepSeek V4 Flash"
