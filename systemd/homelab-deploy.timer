@@ -1,0 +1,12 @@
+[Unit]
+Description=Reconcile homelab stacks every 10 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=10min
+# Spread the trigger so a build never starts at a predictable busy moment.
+RandomizedDelaySec=2min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

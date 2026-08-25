@@ -5,16 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Deployment
 
 ```bash
-# Deploy changes: commit, push, then pull on server
+# Deploy changes: commit, push, then reconcile on the server
 git push
-ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo git pull"
+ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo ./deploy.sh"
 
-# Restart a specific stack after pulling
-ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo docker compose -f <stack>/docker-compose.yml up -d"
-
-# Start all stacks in order (gateway → security → media → contacts → notes → agent → cpa → garden → automation → dashboard)
-ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo ./start.sh"
+# One stack only
+ssh -i ~/.ssh/id_infra_v2 ubuntu@homelab "cd /opt/homelab && sudo ./deploy.sh <stack>"
 ```
+
+`deploy.sh` pulls the repo, builds any in-house app image the stacks reference
+but the local registry lacks, then applies every stack (registry → gateway →
+security → media → contacts → notes → agent → cpa → automation → dashboard).
+`start.sh` is `deploy.sh --no-pull`. A systemd timer runs it every 10 minutes,
+so pushing a commit is normally enough.
 
 README-only changes don't need a stack restart.
 
@@ -28,6 +31,7 @@ The independent Docker Compose stacks share a single `proxy_net` bridge network:
 - **media/** — Jellyfin (video streaming) and Navidrome (music streaming). Both mount the NAS media share read-only.
 - **downloads/** — qBittorrent. Mounts full NAS media share.
 - **dashboard/** — Homepage + Docker socket proxy (Tecnativa). Homepage connects to the proxy over TCP:2375, never touches the Docker socket directly.
+- **registry/** — zot OCI registry for in-house app images, published on `127.0.0.1:5000` only (loopback is insecure-by-default for the Docker daemon, so no TLS or login is needed). Read-only web UI at `registry.<DOMAIN>`; Caddy 405s any non-GET/HEAD/OPTIONS request. Images are built on the VM by `deploy.sh` from each app's own git repo, listed in `registry/apps.conf`. See `docs/deployments.md`.
 - **automation/** — Mosquitto MQTT broker (1883 plain + 9001 websockets, published on the host) + ESPHome dashboard. The VM carries 10.0.20.20 as a secondary IP (netplan overlay) so ESPHome devices keep their baked-in broker address.
 
 All inter-service traffic is plain HTTP over `proxy_net`. External access goes through Tailscale (WireGuard) → Caddy (TLS termination). NAS access is direct LAN via CIFS.
@@ -43,5 +47,7 @@ All inter-service traffic is plain HTTP over `proxy_net`. External access goes t
 ## Key Config Locations
 
 - `gateway/Caddyfile` — reverse proxy rules, wildcard TLS, named matchers per service
+- `registry/apps.conf` — image name → git URL for in-house apps built by `deploy.sh`
+- Image tags in the stack compose files are the deployed versions — bump the tag to release, revert the commit to roll back
 - `dashboard/config/` — Homepage YAML configs (services, widgets, docker connection, settings)
 - `dashboard/config/docker.yaml` — Docker socket proxy connection (host: dockerproxy, port: 2375)

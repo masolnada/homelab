@@ -17,6 +17,7 @@ graph LR
             Caddy --> Silverbullet
             Caddy --> ImmichProxy[Immich Public Proxy]
             Caddy --> Hermes
+            Caddy -->|read-only UI| Zot[zot registry]
             Caddy --> HermesWorkspace[Hermes Workspace]
             HermesWorkspace --> Hermes
             ImmichProxy --> Immich[Immich]
@@ -61,7 +62,8 @@ graph LR
 - 🤖 **Hermes** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `hermes.<DOMAIN>`, daily backup to TrueNAS (no downtime). [Hermes Workspace](https://github.com/outsourc-e/hermes-workspace) at `workspace.<DOMAIN>` adds a full UI on top of the same agent (chat, file browser, terminal, skills/memory management) — it shares the `agent_data` volume and talks to the agent's gateway API (:8642, token-protected via `HERMES_API_KEY`) and dashboard API (:9119); workspace login uses `HERMES_WORKSPACE_PASSWORD`. Known limitation: the hermes dashboard's `basic_auth` (which hermes *requires* on non-loopback binds — there is no unauthenticated option) blocks the workspace from scraping a dashboard session token, so dashboard-token features (session kanban, context usage) run degraded; chat, files, skills, and memory work fully via the gateway API. Fixing this would require binding the dashboard to loopback and sharing hermes's network namespace, at the cost of the standalone `hermes.<DOMAIN>` UI.
 - 🔀 **CPA** — [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI), one shared LLM proxy for all coding agents (pi, Claude, Codex), at `cpa.<DOMAIN>`. Its `/management.html` endpoint uses the [CPA Manager Plus](https://github.com/seakee/CPA-Manager-Plus) lightweight panel, while full Manager Server mode runs at `cpamp.<DOMAIN>` with persistent request history, usage and cost analytics, model pricing, inspection, and automation. Fronts OAuth providers (Antigravity Gemini, Claude) and OpenAI-compatible upstreams (OpenRouter → GLM, DeepSeek) behind a single API key, so agents point at one endpoint instead of juggling per-provider creds. CPAMP connects directly to CPA over `proxy_net`, stores its SQLite database and encryption key under `cpa/manager/`, and uses `CPA_MANAGER_ADMIN_KEY` for login. The retired cpa-usage-keeper data remains under `cpa/keeper/` for recovery but no longer consumes the CPA usage queue. Daily backup of `auths/`, CPAMP data, and the legacy keeper DB to TrueNAS. **OAuth logins are done off-box:** the panel/CLI callback binds a loopback redirect to the proxy's own port, which doesn't resolve against a headless host — so log in locally, then `scp` the resulting `auths/*.json` (each carries a `refresh_token`, so CPA auto-refreshes indefinitely with no further callbacks). Config lives in `config.yaml` (gitignored — holds the mgmt key, client API key, OpenRouter key, and DeepSeek key); recreate it from `config.example.yaml`. Also mirrored in the [agent-station](https://github.com/masolnada/agent-station) repo for local dev.
 - 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`. Two Zigbee2MQTT instances (`z2m-baixos` and `z2m-pis`) each drive an SLZB-06P7 network coordinator — "zb-coord-baixos" at `10.0.20.6:6638` and "zb-coord-pis" at `10.0.20.5:6638` (zstack over TCP — no USB passthrough). Frontends at `z2m-baixos.<DOMAIN>` / `z2m-pis.<DOMAIN>`, publishing raw JSON to `zigbee2mqtt-baixos/#` / `zigbee2mqtt-pis/#` on Mosquitto (Home Assistant discovery disabled). The networks use distinct radio channels (baixos on the default 11, pis pinned to 15) and distinct `Z2M_<NAME>_*` identity values. State (device DB, network config) lives in the `z2m_baixos_data` / `z2m_pis_data` volumes — no backup sidecar yet, so keep the `Z2M_*` network identity values safe. Sensor history is captured by **Telegraf → InfluxDB 2 → Grafana**: Telegraf subscribes to `zigbee2mqtt-baixos/+` and `zigbee2mqtt-pis/+` (single-level wildcard, so bridge and availability topics are skipped) and writes every device report to the `zigbee` bucket as measurement `zigbee`, tagged `base_topic` and `device`. It uses the classic JSON parser, which keeps numeric values and **drops strings and booleans silently** — deliberate, since it guarantees every field is a float and no device can cause a type conflict; capturing `action` / `contact` / `occupancy` later needs `json_string_fields` plus an enum processor in `automation/telegraf/telegraf.conf`. A **Shelly Pro 3EM** three-phase CT meter feeds the same pipeline over stock Shelly firmware (no ESPHome) — see [⚡ Energy Metering](#-energy-metering). **ring-mqtt** bridges a Ring intercom/doorbell to MQTT so bell/motion events can drive automations — see [Ring Intercom](#-ring-intercom-ring-mqtt) below for the one-time auth setup. It's internal to `proxy_net` with no Caddy route (no persistent web UI — auth is a one-off CLI step) and no backup sidecar; its `ring_data` volume holds `config.json` and the self-rotating refresh token. Grafana at `grafana.<DOMAIN>` provisions its InfluxDB datasource (Flux) and dashboards from git under `automation/grafana/` — dashboard JSON hard-codes the bucket name, so it must match `INFLUXDB_BUCKET`. InfluxDB and Telegraf are internal to `proxy_net` with no Caddy route. `INFLUXDB_*` and `GRAFANA_ADMIN_*` only take effect on first boot (empty `influxdb_data` / `grafana_data` volume); no backup sidecars.
-- 🏋️ **No Limit Cardona monitor** — a small Telegram bot that watches the No Limit Cardona (Trainin) gym class schedule and notifies subscribed chats when classes change (new/removed/rescheduled/full/spot available). It polls the gym's public schedule endpoint every 10 minutes between 08:00 and midnight, replies to `/gym` (this week's classes) and `/gym_tracker_status`, and auto-subscribes any chat it is added to. Vendored under `automation/nolimit-cardona-monitor/` and **built locally** by the stack (`build:`, no registry); canonical source is the [nolimit-cardona-monitor](https://github.com/masolnada/nolimit-cardona-monitor) repo. Outbound-only (no Caddy route, no inbound ports); state and the subscriber list persist in the `nolimit_cardona_data` volume. Configured via `NOLIMIT_TELEGRAM_*` in `automation/.env`.
+- 🏋️ **No Limit Cardona monitor** — a small Telegram bot that watches the No Limit Cardona (Trainin) gym class schedule and notifies subscribed chats when classes change (new/removed/rescheduled/full/spot available). It polls the gym's public schedule endpoint every 10 minutes between 08:00 and midnight, replies to `/gym` (this week's classes) and `/gym_tracker_status`, and auto-subscribes any chat it is added to. Built from its own repo ([nolimit-cardona-monitor](https://github.com/masolnada/nolimit-cardona-monitor)) by `deploy.sh` and pulled from the local registry — see [📦 Registry & deployments](#-registry--deployments). Outbound-only (no Caddy route, no inbound ports); state and the subscriber list persist in the `nolimit_cardona_data` volume. Configured via `NOLIMIT_TELEGRAM_*` in `automation/.env`.
+- 📦 **Registry** — [zot](https://zotregistry.dev) OCI registry holding images for programs written in-house, published on `127.0.0.1:5000` only (loopback is insecure-by-default for the Docker daemon, so no TLS or `docker login` is needed) with a read-only web UI at `registry.<DOMAIN>`. Images are built **on the VM** by `deploy.sh` from each app's own git repo; nothing outside the network can push. See [📦 Registry & deployments](#-registry--deployments).
 - 📊 **Dashboard** — Homepage at `home.<DOMAIN>` with greeting, weather (Cardona & Barcelona via Open-Meteo), server resources, service status, and Docker stats (via socket proxy)
 
 ## 📂 NAS Share Structure
@@ -311,10 +313,21 @@ A wildcard A record (`*.<DOMAIN>`) points directly to the server IP in Cloudflar
 ### 4. Start the stacks
 
 ```bash
-./start.sh
+./deploy.sh
 ```
 
-This starts gateway, security, media, contacts, notes, agent, cpa, garden, automation, and dashboard in order.
+This pulls the repo, builds any in-house app image the stacks reference but the
+local registry does not have yet, then starts registry, gateway, security,
+media, contacts, notes, agent, cpa, automation, and dashboard in order.
+`./start.sh` is the same thing without the git pull.
+
+Optionally install the timer so the VM reconciles itself every 10 minutes:
+
+```bash
+sudo cp systemd/homelab-deploy.* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now homelab-deploy.timer
+```
 
 ### 5. ✅ Verify
 
@@ -336,6 +349,26 @@ Before starting the stacks, make sure your TrueNAS server has:
 1. **SMB shares** — a backup share for Vaultwarden/Radicale/Immich, a media share with a music subdirectory for Navidrome, and a photos share for Immich
 2. **Dedicated users** — a backup user (read/write), a media user (read-only for Navidrome), and a photos user (read/write for Immich)
 3. **CIFS utils installed** on the VM: `sudo apt install cifs-utils`
+
+## 📦 Registry & deployments
+
+Programs written in-house are built on the VM from their own git repos and
+stored in a local [zot](https://zotregistry.dev) registry — no external CI, no
+credentials to the homelab held anywhere outside it.
+
+The image tag committed in a stack's `docker-compose.yml` is the deployed
+version, so releasing is a tag bump commit and rollback is a `git revert`. A
+systemd timer runs `deploy.sh` every 10 minutes, which makes the commit itself
+the deploy.
+
+```bash
+./deploy.sh              # pull, build what's missing, apply every stack
+./deploy.sh automation   # one stack
+./deploy.sh --no-pull    # apply the current checkout as-is
+```
+
+App git URLs live in `registry/apps.conf`. Full walkthrough, including adding a
+new app: [docs/deployments.md](docs/deployments.md).
 
 ## ➕ Adding a New Service
 

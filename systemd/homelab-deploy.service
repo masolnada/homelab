@@ -1,0 +1,10 @@
+[Unit]
+Description=Reconcile homelab stacks with the git checkout
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/homelab
+ExecStart=/opt/homelab/deploy.sh
+TimeoutStartSec=30min

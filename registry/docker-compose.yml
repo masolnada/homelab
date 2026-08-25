@@ -1,0 +1,22 @@
+services:
+  zot:
+    image: ghcr.io/project-zot/zot:v2.1.20
+    container_name: zot
+    restart: unless-stopped
+    # Published on the host so the Docker daemon can push/pull over
+    # 127.0.0.1:5000, which Docker trusts as insecure by default — no TLS, no
+    # daemon config, no login. Caddy exposes the read-only web UI separately.
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - ./config.json:/etc/zot/config.json:ro
+      - zot_data:/var/lib/registry
+    networks:
+      - proxy_net
+
+volumes:
+  zot_data:
+
+networks:
+  proxy_net:
+    external: true

@@ -94,6 +94,16 @@
 		reverse_proxy grafana:3000
 	}
 
+	# Read-only browsing of the local image registry. Pushes and pulls do not go
+	# through here — the Docker daemon uses 127.0.0.1:5000 directly — so anything
+	# that mutates state is rejected.
+	@registry host registry.{$DOMAIN}
+	handle @registry {
+		@registry-write not method GET HEAD OPTIONS
+		respond @registry-write 405
+		reverse_proxy zot:5000
+	}
+
 	handle {
 		abort
 	}

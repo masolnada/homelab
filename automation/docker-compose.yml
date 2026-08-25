@@ -331,8 +331,11 @@ services:
       - proxy_net
 
   nolimit-cardona-monitor:
-    build: ./nolimit-cardona-monitor
-    image: nolimit-cardona-monitor:local
+    # Built by deploy.sh from the app's own git repo (see registry/apps.conf) and
+    # stored in the local zot registry. The tag is a git ref in that repo (tag or
+    # commit) — bump it here to deploy a new version. The app repo is not tagged
+    # yet, hence the commit; switch to semver tags once it is.
+    image: localhost:5000/nolimit-cardona-monitor:0308c4a
     container_name: nolimit-cardona-monitor
     restart: unless-stopped
     environment:
