@@ -76,6 +76,13 @@ now instead of within 10 minutes.
    my-app https://github.com/masolnada/my-app.git
    ```
 
+   If the Dockerfile is not at repository root, add relative build-context and
+   Dockerfile columns:
+
+   ```
+   milverds-agent-inbox https://github.com/masolnada/milverds.git services/agent-inbox server/Dockerfile
+   ```
+
 3. In the stack's `docker-compose.yml`, add the service with a pinned tag:
 
    ```yaml

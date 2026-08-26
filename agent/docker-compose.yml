@@ -12,6 +12,7 @@ services:
       - API_SERVER_KEY=${HERMES_API_KEY}
     volumes:
       - agent_data:/opt/data
+      - agent_inbox_spool:/opt/data/agent-inbox
     networks:
       - proxy_net
     healthcheck:
@@ -25,6 +26,24 @@ services:
         limits:
           memory: 2G
           cpus: "1.0"
+
+  agent-inbox:
+    image: localhost:5000/milverds-agent-inbox:b8af4b452dee88945385268905de51e1edc4d5ce
+    container_name: agent-inbox
+    restart: unless-stopped
+    environment:
+      - PORT=8080
+      - SPOOL_DIR=/var/lib/agent-inbox
+      - INGEST_TOKEN=${AGENT_INBOX_INGEST_TOKEN}
+      - INBOX_ADDRESS=${AGENT_INBOX_INBOX_ADDRESS}
+      - AUTHORIZED_SENDER=${AGENT_INBOX_AUTHORIZED_SENDER}
+      - DKIM_DOMAIN=${AGENT_INBOX_DKIM_DOMAIN}
+      - MAX_RAW_BYTES=26214400
+      - MAX_INPUT_CHARS=100000
+    volumes:
+      - agent_inbox_spool:/var/lib/agent-inbox
+    networks:
+      - proxy_net
 
   workspace:
     image: ghcr.io/outsourc-e/hermes-workspace:latest
@@ -46,6 +65,7 @@ services:
     volumes:
       - agent_data:/home/workspace/.hermes
       - workspace_files:/workspace
+      - agent_inbox_spool:/home/workspace/agent-inbox
     networks:
       - proxy_net
     deploy:
@@ -75,6 +95,8 @@ services:
 
 volumes:
   agent_data:
+  agent_inbox_spool:
+    name: agent_inbox_spool
   workspace_files:
   nas_backup:
     driver: local

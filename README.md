@@ -370,6 +370,20 @@ the deploy.
 App git URLs live in `registry/apps.conf`. Full walkthrough, including adding a
 new app: [docs/deployments.md](docs/deployments.md).
 
+### Agent Inbox
+
+The `agent` stack also runs `milverds-agent-inbox` from the full pinned Milverds
+commit in `agent/docker-compose.yml`. The service receives authenticated raw email
+from the Cloudflare Worker at `https://ingest.agents.milverds.com`, writes
+proposals to the persistent `agent_inbox_spool` volume, and has no repository
+mount or Git credentials. The same volume is mounted into Hermes at
+`/opt/data/agent-inbox` so the `purchase-email` skill can consume proposals.
+Set `AGENT_INBOX_INGEST_TOKEN` in the gitignored `agent/.env`; use the same
+secret for the Worker. Add the `ingest.agents` DNS record pointing at the
+homelab endpoint as well; the existing one-label wildcard does not cover this
+nested hostname. Keep Cloudflare Email Routing on `agents.milverds.com`, and
+never add Cloudflare MX or SPF records to bare `milverds.com`.
+
 ## ➕ Adding a New Service
 
 To expose a service running on a different Proxmox VM (e.g. `192.168.1.50:8080`), add a block to `gateway/Caddyfile`:

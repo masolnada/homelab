@@ -2,6 +2,16 @@
 	email {$ACME_EMAIL}
 }
 
+ingest.agents.{$DOMAIN} {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+		resolvers nina.ns.cloudflare.com randy.ns.cloudflare.com
+		propagation_delay 60s
+	}
+
+	reverse_proxy agent-inbox:8080
+}
+
 *.{$DOMAIN} {
 	tls {
 		dns cloudflare {env.CLOUDFLARE_API_TOKEN}

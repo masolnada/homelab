@@ -47,9 +47,14 @@ fi
 # selected compose files is a build request. The tag is a git ref in the app
 # repo listed in registry/apps.conf. An image already in the registry is never
 # rebuilt, so this is a no-op on every run but the first after a version bump.
+#
+# apps.conf columns are: image-name git-url [build-context] [dockerfile].
+# Context and Dockerfile are relative to the checked-out app repository and
+# default to . and Dockerfile, respectively.
 
-app_repo() {
-  awk -v name="$1" '$1 == name { print $2; exit }' "$APPS_CONF"
+app_field() {
+  local name="$1" field="$2"
+  awk -v name="$name" -v field="$field" '$1 == name { print $field; exit }' "$APPS_CONF"
 }
 
 image_exists() {
@@ -59,12 +64,24 @@ image_exists() {
 }
 
 build_app() {
-  local name="$1" ref="$2" repo src
-  repo="$(app_repo "$name")"
+  local name="$1" ref="$2" repo src context dockerfile
+  repo="$(app_field "$name" 2)"
+  context="$(app_field "$name" 3)"
+  dockerfile="$(app_field "$name" 4)"
+  context="${context:-.}"
+  dockerfile="${dockerfile:-Dockerfile}"
   if [ -z "$repo" ]; then
     echo "no git url for '$name' in registry/apps.conf" >&2
     exit 1
   fi
+  case "$context" in /*|../*|*/../*|..)
+    echo "$name: build context must stay inside the checkout" >&2
+    exit 1
+  esac
+  case "$dockerfile" in /*|../*|*/../*|..)
+    echo "$name: Dockerfile path must stay inside the checkout" >&2
+    exit 1
+  esac
 
   src="$BUILD_CACHE/$name"
   if [ -d "$src/.git" ]; then
@@ -80,9 +97,17 @@ build_app() {
   fi
   git -C "$src" checkout --detach --force "$ref"
   git -C "$src" clean -fdx
+  if [ ! -d "$src/$context" ]; then
+    echo "$name: no such build context '$context'" >&2
+    exit 1
+  fi
+  if [ ! -f "$src/$dockerfile" ]; then
+    echo "$name: no such Dockerfile '$dockerfile'" >&2
+    exit 1
+  fi
 
-  log "Building $name:$ref"
-  docker build -t "$REGISTRY/$name:$ref" "$src"
+  log "Building $name:$ref (context $context, Dockerfile $dockerfile)"
+  docker build -f "$src/$dockerfile" -t "$REGISTRY/$name:$ref" "$src/$context"
   docker push "$REGISTRY/$name:$ref"
 }
 
