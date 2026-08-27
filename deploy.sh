@@ -49,8 +49,8 @@ fi
 # rebuilt, so this is a no-op on every run but the first after a version bump.
 #
 # apps.conf columns are: image-name git-url [build-context] [dockerfile].
-# Context and Dockerfile are relative to the checked-out app repository and
-# default to . and Dockerfile, respectively.
+# Context is relative to the checked-out app repository; Dockerfile is relative
+# to that build context. Both default to . and Dockerfile, respectively.
 
 app_field() {
   local name="$1" field="$2"
@@ -101,13 +101,14 @@ build_app() {
     echo "$name: no such build context '$context'" >&2
     exit 1
   fi
-  if [ ! -f "$src/$dockerfile" ]; then
-    echo "$name: no such Dockerfile '$dockerfile'" >&2
+  dockerfile_path="$src/$context/$dockerfile"
+  if [ ! -f "$dockerfile_path" ]; then
+    echo "$name: no such Dockerfile '$dockerfile' in build context '$context'" >&2
     exit 1
   fi
 
   log "Building $name:$ref (context $context, Dockerfile $dockerfile)"
-  docker build -f "$src/$dockerfile" -t "$REGISTRY/$name:$ref" "$src/$context"
+  docker build -f "$dockerfile_path" -t "$REGISTRY/$name:$ref" "$src/$context"
   docker push "$REGISTRY/$name:$ref"
 }
 

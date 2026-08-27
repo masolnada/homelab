@@ -76,8 +76,8 @@ now instead of within 10 minutes.
    my-app https://github.com/masolnada/my-app.git
    ```
 
-   If the Dockerfile is not at repository root, add relative build-context and
-   Dockerfile columns:
+   If the Dockerfile is not at repository root, add a build-context column and
+   a Dockerfile path relative to that context:
 
    ```
    milverds-agent-inbox https://github.com/masolnada/milverds.git services/agent-inbox server/Dockerfile
