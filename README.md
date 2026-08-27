@@ -272,7 +272,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 |---|---|
 | `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
 | `MQTT_USERNAME` | Mosquitto username — the container renders its password file from these at start |
-| `MQTT_PASSWORD` | Mosquitto password (same values the ESPHome devices, the hort dashboard, and Zigbee2MQTT use) |
+| `MQTT_PASSWORD` | Mosquitto password (same values the ESPHome devices and Zigbee2MQTT use) |
 | `RING_LOCATION_ID` | Ring location UUID — build the ring-mqtt topics for the `mqtt-rules` sidecar. From `docker logs ring-mqtt` ("New location:") |
 | `RING_INTERCOM_ID` | Ring intercom device ID — same source ("New device:"). Both change if the intercom is re-added to the account |
 | `Z2M_BAIXOS_NETWORK_KEY` | Zigbee network key, 16-byte array without spaces (e.g. `[13,42,...]`) — **generate once, never change after pairing devices** (changing it orphans the whole network) |
