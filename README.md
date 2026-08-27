@@ -383,11 +383,20 @@ secret for the Worker.
 
 It is **not** behind Caddy. Caddy listens only on the Tailscale address, while
 the Cloudflare Email Worker calls in from the public internet, so
-`ingest.agents.milverds.com` is published through the `cloudflared` tunnel
-instead — the same pattern as `share.<DOMAIN>`. In the tunnel → Published
+`ingest.agents.milverds.com` is published through a Cloudflare Tunnel and
+Cloudflare terminates TLS — no certificate is issued locally.
+
+It uses its **own** tunnel and its **own** network, not the shared gateway
+ones. `cloudflared-milverds` and `agent-inbox` sit alone on `milverds_net`, so
+the tunnel token can publish only to `agent-inbox`, and `agent-inbox` — which
+parses untrusted email and PDF attachments — has no route to Vaultwarden, the
+Docker socket proxy, Postgres, InfluxDB or MQTT. Hermes still reaches the spool
+through the shared `agent_inbox_spool` volume, not over the network, so nothing
+is lost by keeping it off `proxy_net`.
+
+Set `MILVERDS_TUNNEL_TOKEN` in `agent/.env`. In that tunnel → Published
 applications, add subdomain `ingest.agents`, domain `milverds.com`, service
-type `HTTP`, URL `agent-inbox:8080`. Cloudflare creates the DNS record and
-terminates TLS, so no certificate is issued locally.
+type `HTTP`, URL `agent-inbox:8080`.
 
 Keep Cloudflare Email Routing on `agents.milverds.com`, and never add
 Cloudflare MX or SPF records to bare `milverds.com`.

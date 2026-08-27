@@ -43,7 +43,19 @@ services:
     volumes:
       - agent_inbox_spool:/var/lib/agent-inbox
     networks:
-      - proxy_net
+      - milverds_net
+
+  # Own tunnel and own network. The token can publish only to agent-inbox, and
+  # agent-inbox — which parses untrusted email and PDFs — cannot reach
+  # Vaultwarden, the Docker socket proxy or any other proxy_net service.
+  # Hermes reaches the spool through the shared volume, not over the network.
+  cloudflared-milverds:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-milverds
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${MILVERDS_TUNNEL_TOKEN}
+    networks:
+      - milverds_net
 
   workspace:
     image: ghcr.io/outsourc-e/hermes-workspace:latest
@@ -108,3 +120,5 @@ volumes:
 networks:
   proxy_net:
     external: true
+  milverds_net:
+    name: milverds_net
