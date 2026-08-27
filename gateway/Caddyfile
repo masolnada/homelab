@@ -2,7 +2,7 @@
 	email {$ACME_EMAIL}
 }
 
-ingest.agents.{$DOMAIN} {
+ingest.agents.milverds.com {
 	tls {
 		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
 		resolvers nina.ns.cloudflare.com randy.ns.cloudflare.com
