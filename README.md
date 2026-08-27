@@ -374,7 +374,7 @@ new app: [docs/deployments.md](docs/deployments.md).
 
 The `agent` stack also runs `milverds-agent-inbox` from the full pinned Milverds
 commit in `agent/docker-compose.yml`. The service receives authenticated raw email
-from the Cloudflare Worker at `https://ingest.agents.milverds.com`, writes
+from the Cloudflare Worker at `https://ingest-agents.milverds.com`, writes
 proposals to the persistent `agent_inbox_spool` volume, and has no repository
 mount or Git credentials. The same volume is mounted into Hermes at
 `/opt/data/agent-inbox` so the `purchase-email` skill can consume proposals.
@@ -383,7 +383,7 @@ secret for the Worker.
 
 It is **not** behind Caddy. Caddy listens only on the Tailscale address, while
 the Cloudflare Email Worker calls in from the public internet, so
-`ingest.agents.milverds.com` is published through a Cloudflare Tunnel and
+`ingest-agents.milverds.com` is published through a Cloudflare Tunnel and
 Cloudflare terminates TLS — no certificate is issued locally.
 
 It uses its **own** tunnel and its **own** network, not the shared gateway
@@ -395,8 +395,15 @@ through the shared `agent_inbox_spool` volume, not over the network, so nothing
 is lost by keeping it off `proxy_net`.
 
 Set `MILVERDS_TUNNEL_TOKEN` in `agent/.env`. In that tunnel → Published
-applications, add subdomain `ingest.agents`, domain `milverds.com`, service
+applications, add subdomain `ingest-agents`, domain `milverds.com`, service
 type `HTTP`, URL `agent-inbox:8080`.
+
+The hostname is deliberately **one label deep**. Cloudflare's Universal SSL
+certificate covers `milverds.com` and `*.milverds.com`, and a wildcard matches
+only a single label — so a nested `ingest.agents.milverds.com` is rejected at
+the edge with a TLS handshake failure before it ever reaches the tunnel. Going
+deeper needs Advanced Certificate Manager. The email address
+`inbox@agents.milverds.com` is unaffected; it is Email Routing, not this host.
 
 Keep Cloudflare Email Routing on `agents.milverds.com`, and never add
 Cloudflare MX or SPF records to bare `milverds.com`.

@@ -28,7 +28,7 @@ services:
           cpus: "1.0"
 
   agent-inbox:
-    image: localhost:5000/milverds-agent-inbox:b8af4b452dee88945385268905de51e1edc4d5ce
+    image: localhost:5000/milverds-agent-inbox:957df2b59a8f7b538dfb6c7141da66abca5b0ef7
     container_name: agent-inbox
     restart: unless-stopped
     environment:

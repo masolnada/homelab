@@ -4,7 +4,7 @@
 
 # Agent Inbox is not routed here. Caddy only listens on the Tailscale address,
 # but the Cloudflare Email Worker calls it from the public internet, so
-# ingest.agents.milverds.com is published through the cloudflared tunnel
+# ingest-agents.milverds.com is published through the cloudflared tunnel
 # instead — same pattern as share.{$DOMAIN}. See README.
 
 *.{$DOMAIN} {
