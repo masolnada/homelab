@@ -99,6 +99,11 @@
 		reverse_proxy grafana:3000
 	}
 
+	@gatus host gatus.{$DOMAIN}
+	handle @gatus {
+		reverse_proxy gatus:8080
+	}
+
 	# Read-only browsing of the local image registry. Pushes and pulls do not go
 	# through here — the Docker daemon uses 127.0.0.1:5000 directly — so anything
 	# that mutates state is rejected.

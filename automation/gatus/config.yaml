@@ -1,0 +1,26 @@
+# Gatus currently requires at least one polled endpoint even when all useful
+# monitoring is push-based. This loopback check satisfies that invariant; it is
+# not an agent health endpoint and opens no additional port.
+endpoints:
+  - name: gatus
+    group: monitoring
+    url: http://127.0.0.1:8080/health
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+
+external-endpoints:
+  - name: milverds-brief
+    group: milverds
+    token: "${GATUS_MILVERDS_TOKEN}"
+    heartbeat:
+      interval: 26h
+    alerts:
+      - type: telegram
+        description: "No Milverds Brief today"
+        send-on-resolved: true
+
+alerting:
+  telegram:
+    token: "${GATUS_TELEGRAM_BOT_TOKEN}"
+    id: "${GATUS_TELEGRAM_CHAT_ID}"
