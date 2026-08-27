@@ -379,10 +379,18 @@ proposals to the persistent `agent_inbox_spool` volume, and has no repository
 mount or Git credentials. The same volume is mounted into Hermes at
 `/opt/data/agent-inbox` so the `purchase-email` skill can consume proposals.
 Set `AGENT_INBOX_INGEST_TOKEN` in the gitignored `agent/.env`; use the same
-secret for the Worker. Add the `ingest.agents` DNS record pointing at the
-homelab endpoint as well; the existing one-label wildcard does not cover this
-nested hostname. Keep Cloudflare Email Routing on `agents.milverds.com`, and
-never add Cloudflare MX or SPF records to bare `milverds.com`.
+secret for the Worker.
+
+It is **not** behind Caddy. Caddy listens only on the Tailscale address, while
+the Cloudflare Email Worker calls in from the public internet, so
+`ingest.agents.milverds.com` is published through the `cloudflared` tunnel
+instead — the same pattern as `share.<DOMAIN>`. In the tunnel → Published
+applications, add subdomain `ingest.agents`, domain `milverds.com`, service
+type `HTTP`, URL `agent-inbox:8080`. Cloudflare creates the DNS record and
+terminates TLS, so no certificate is issued locally.
+
+Keep Cloudflare Email Routing on `agents.milverds.com`, and never add
+Cloudflare MX or SPF records to bare `milverds.com`.
 
 ## ➕ Adding a New Service
 

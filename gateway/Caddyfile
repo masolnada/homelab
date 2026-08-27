@@ -2,15 +2,10 @@
 	email {$ACME_EMAIL}
 }
 
-ingest.agents.milverds.com {
-	tls {
-		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-		resolvers nina.ns.cloudflare.com randy.ns.cloudflare.com
-		propagation_delay 60s
-	}
-
-	reverse_proxy agent-inbox:8080
-}
+# Agent Inbox is not routed here. Caddy only listens on the Tailscale address,
+# but the Cloudflare Email Worker calls it from the public internet, so
+# ingest.agents.milverds.com is published through the cloudflared tunnel
+# instead — same pattern as share.{$DOMAIN}. See README.
 
 *.{$DOMAIN} {
 	tls {
