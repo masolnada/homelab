@@ -28,6 +28,7 @@ services:
           cpus: "1.0"
 
   home-agent:
+    profiles: [home-agent]
     image: localhost:5000/home-agent:af300a970a238644e08c5329c9d6ede6624224c0
     container_name: home-agent
     restart: unless-stopped

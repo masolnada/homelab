@@ -251,6 +251,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
 | `HERMES_API_KEY` | Token for the agent's gateway API (:8642) — shared between the `hermes` and `workspace` containers |
 | `HERMES_WORKSPACE_PASSWORD` | Login password for the Hermes Workspace UI at `workspace.<DOMAIN>` |
+| `COMPOSE_PROFILES` | Set to `home-agent` after all Home Agent credentials are configured; empty keeps the bot disabled |
 | `HOME_AGENT_TELEGRAM_BOT_TOKEN` | Dedicated Home Agent bot token; must not be shared with Hermes |
 | `HOME_AGENT_TELEGRAM_USER_ID` / `HOME_AGENT_TELEGRAM_CHAT_ID` | Marc's permitted private Telegram user and chat IDs |
 | `HOME_AGENT_CLIPROXYAPI_API_KEY` / `HOME_AGENT_PI_MODEL_ID` | CPA client key and pinned model for conversational rule editing |
