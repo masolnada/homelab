@@ -27,6 +27,45 @@ services:
           memory: 2G
           cpus: "1.0"
 
+  home-agent:
+    image: localhost:5000/home-agent:af300a970a238644e08c5329c9d6ede6624224c0
+    container_name: home-agent
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+      - PI_OFFLINE=1
+      - HOME_AGENT_REPO_DIR=/data/repo
+      - PI_CODING_AGENT_DIR=/data/pi-agent
+      - PI_CODING_AGENT_SESSION_DIR=/data/sessions
+      - HOME_AGENT_STATE_DIR=/data/state
+      - TELEGRAM_BOT_TOKEN=${HOME_AGENT_TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_USER_ID=${HOME_AGENT_TELEGRAM_USER_ID}
+      - TELEGRAM_CHAT_ID=${HOME_AGENT_TELEGRAM_CHAT_ID}
+      - CLIPROXYAPI_BASE_URL=http://cli-proxy-api:8317
+      - CLIPROXYAPI_API_KEY=${HOME_AGENT_CLIPROXYAPI_API_KEY}
+      - PI_MODEL_PROVIDER=cliproxyapi
+      - PI_MODEL_ID=${HOME_AGENT_PI_MODEL_ID}
+      - PI_THINKING_LEVEL=${HOME_AGENT_PI_THINKING_LEVEL:-medium}
+      - MQTT_URL=mqtt://mosquitto:1883
+      - MQTT_USERNAME=${HOME_AGENT_MQTT_USERNAME}
+      - MQTT_PASSWORD=${HOME_AGENT_MQTT_PASSWORD}
+      - REPO_URL=git@github.com:masolnada/my-esphome.git
+      - GIT_DEPLOY_KEY_B64=${HOME_AGENT_GIT_DEPLOY_KEY_B64}
+      - GIT_AUTHOR_NAME=Home Agent
+      - GIT_AUTHOR_EMAIL=home-agent@local
+    volumes:
+      - home_agent_repo:/data/repo
+      - home_agent_pi:/data/pi-agent
+      - home_agent_sessions:/data/sessions
+      - home_agent_state:/data/state
+    networks:
+      - proxy_net
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+
   agent-inbox:
     image: localhost:5000/milverds-agent-inbox:fcbe7f3759d2a75a87f3db0dc7760f2c2a628b0e
     container_name: agent-inbox
@@ -99,6 +138,9 @@ services:
     volumes:
       - agent_data:/backup/agent_data:ro
       - workspace_files:/backup/workspace_files:ro
+      - home_agent_pi:/backup/home_agent_pi:ro
+      - home_agent_sessions:/backup/home_agent_sessions:ro
+      - home_agent_state:/backup/home_agent_state:ro
       - nas_backup:/archive
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
@@ -110,6 +152,10 @@ volumes:
   agent_inbox_spool:
     name: agent_inbox_spool
   workspace_files:
+  home_agent_repo:
+  home_agent_pi:
+  home_agent_sessions:
+  home_agent_state:
   nas_backup:
     driver: local
     driver_opts:
