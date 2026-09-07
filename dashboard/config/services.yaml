@@ -95,6 +95,13 @@
         siteMonitor: http://cli-proxy-api:8317
         server: my-docker
         container: cli-proxy-api
+    - 9Router:
+        icon: 9router
+        href: https://9router.{{HOMEPAGE_VAR_DOMAIN}}
+        description: 9router.{{HOMEPAGE_VAR_DOMAIN}}
+        siteMonitor: http://9router:20128
+        server: my-docker
+        container: 9router
 
 - Home Automation:
     - Core:

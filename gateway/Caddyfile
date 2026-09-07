@@ -69,6 +69,11 @@
 		reverse_proxy cli-proxy-api:8317
 	}
 
+	@9router host 9router.{$DOMAIN}
+	handle @9router {
+		reverse_proxy 9router:20128
+	}
+
 	@cpamp host cpamp.{$DOMAIN}
 	handle @cpamp {
 		reverse_proxy cpa-manager-plus:18317
