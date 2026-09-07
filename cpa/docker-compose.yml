@@ -64,8 +64,11 @@ services:
       - NODE_ENV=production
       - JWT_SECRET=${NINEROUTER_JWT_SECRET}
       - INITIAL_PASSWORD=${NINEROUTER_INITIAL_PASSWORD}
+      - HEADROOM_URL=http://headroom:8787
     volumes:
       - ./9router:/app/data
+    depends_on:
+      - headroom
     networks:
       - proxy_net
     labels:
@@ -74,6 +77,22 @@ services:
       resources:
         limits:
           memory: 1G
+          cpus: "1.0"
+
+  # RTK token saver for 9router: compresses tool_result payloads before they
+  # reach the upstream provider. Enable in 9router: Endpoint -> Token Saver.
+  headroom:
+    image: ghcr.io/chopratejas/headroom:latest@sha256:50b85d8e320cfcdf1b38919bb7ae067b93ff7a8de0a93f05b2c1246370200d1c
+    container_name: headroom
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    networks:
+      - proxy_net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
           cpus: "1.0"
 
   backup:
