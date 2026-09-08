@@ -102,6 +102,13 @@
         siteMonitor: http://9router:20128
         server: my-docker
         container: 9router
+    - Headroom:
+        icon: mdi-compress
+        href: https://headroom.{{HOMEPAGE_VAR_DOMAIN}}/dashboard
+        description: headroom.{{HOMEPAGE_VAR_DOMAIN}} — 9Router token saver
+        siteMonitor: http://headroom:8787/health
+        server: my-docker
+        container: headroom
 
 - Home Automation:
     - Core:

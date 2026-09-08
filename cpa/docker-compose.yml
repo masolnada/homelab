@@ -87,6 +87,10 @@ services:
     restart: unless-stopped
     environment:
       - TZ=${TIMEZONE}
+    # Savings history (proxy_savings.json) — without this the dashboard resets
+    # to zero on every container recreate.
+    volumes:
+      - ./headroom:/root/.headroom
     networks:
       - proxy_net
     deploy:

@@ -74,6 +74,11 @@
 		reverse_proxy 9router:20128
 	}
 
+	@headroom host headroom.{$DOMAIN}
+	handle @headroom {
+		reverse_proxy headroom:8787
+	}
+
 	@cpamp host cpamp.{$DOMAIN}
 	handle @cpamp {
 		reverse_proxy cpa-manager-plus:18317

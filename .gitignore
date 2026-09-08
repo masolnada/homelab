@@ -17,6 +17,8 @@ cpa/manager/*
 !cpa/manager/.gitkeep
 cpa/9router/*
 !cpa/9router/.gitkeep
+cpa/headroom/*
+!cpa/headroom/.gitkeep
 
 # SSH deploy keys (generated per-server, never committed)
 deploy_key
