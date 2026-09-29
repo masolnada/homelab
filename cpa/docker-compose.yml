@@ -53,7 +53,7 @@ services:
           cpus: "1.0"
 
   9router:
-    image: decolua/9router:latest@sha256:47c17576ad49f0918d1a455dd412ae4509ee8bc742f17ba0b3327ddc70f35a40
+    image: decolua/9router:latest@sha256:efc6e88c963ddb035f8da26a74e156b927863cd05625b47f3587972bc865bd25
     container_name: 9router
     restart: unless-stopped
     environment:
