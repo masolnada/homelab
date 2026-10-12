@@ -29,7 +29,7 @@ services:
 
   home-agent:
     profiles: [home-agent]
-    image: localhost:5000/home-agent:af300a970a238644e08c5329c9d6ede6624224c0
+    image: localhost:5000/home-agent:427789a34c2ddc756a61b3a7e537e16f12b07f5f
     container_name: home-agent
     restart: unless-stopped
     environment:
