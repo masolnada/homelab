@@ -1,7 +1,7 @@
 ui:
   default-sort-by: group
 
-# No persistent storage: a restart can repeat an outage notification.
+# Device notifications are aggregated by home-device-digest.timer at 08:00 Europe/Madrid.
 default-home-device: &home-device
   group: Temperature sensors
   url: http://influxdb:8086/api/v2/query?org=${INFLUXDB_ORG}
@@ -21,13 +21,6 @@ default-home-device: &home-device
   conditions:
     - "[STATUS] == 200"
     - "[BODY] == pat(*home_device_reporting*)"
-  alerts:
-    - type: telegram
-      description: "No device report in the last 3 hours (or monitoring query failed)"
-      failure-threshold: 1
-      success-threshold: 1
-      minimum-reminder-interval: 0s
-      send-on-resolved: true
 
 endpoints:
   - name: shellypro3em-34987a44fb48

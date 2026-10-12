@@ -1,0 +1,9 @@
+[Unit]
+Description=Home-device digest at 08:00 Barcelona time
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 Europe/Madrid
+Unit=home-device-digest.service
+
+[Install]
+WantedBy=timers.target

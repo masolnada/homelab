@@ -1,0 +1,11 @@
+[Unit]
+Description=Send one aggregated home-device Telegram digest
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/homelab
+ExecStart=/usr/bin/python3 /opt/homelab/automation/gatus/digest.py
+TimeoutStartSec=5min
