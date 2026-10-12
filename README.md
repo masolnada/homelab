@@ -255,7 +255,7 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `COMPOSE_PROFILES` | Set to `home-agent` after all Home Agent credentials are configured; empty keeps the bot disabled |
 | `HOME_AGENT_TELEGRAM_BOT_TOKEN` | Dedicated Home Agent bot token; must not be shared with Hermes |
 | `HOME_AGENT_TELEGRAM_USER_ID` / `HOME_AGENT_TELEGRAM_CHAT_ID` | Marc's permitted private Telegram user and chat IDs |
-| `HOME_AGENT_NINEROUTER_API_KEY` / `HOME_AGENT_PI_MODEL_ID` | 9Router client key and pinned model (`cx/gpt-5.6-terra`) for conversational rule editing |
+| `HOME_AGENT_NINEROUTER_API_KEY` / `HOME_AGENT_PI_MODEL_ID` | 9Router client key and pinned model (`cx/gpt-6.1-sol`, high reasoning) for conversational rule editing |
 | `HOME_AGENT_MQTT_USERNAME` / `HOME_AGENT_MQTT_PASSWORD` | Mosquitto credentials used to drive shutters |
 | `HOME_AGENT_GIT_DEPLOY_KEY_B64` | Base64 deploy key with write access to `my-esphome` |
 
