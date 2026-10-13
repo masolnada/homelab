@@ -42,6 +42,10 @@
         siteMonitor: http://100.71.96.101:1984/api
 
 - Applications:
+    - Field Log — Dev:
+        icon: mdi-notebook-edit-outline
+        href: https://field-log.dev.milverds.com
+        description: Development — Tailscale only
     - Navidrome:
         icon: navidrome
         href: https://music.{{HOMEPAGE_VAR_DOMAIN}}
