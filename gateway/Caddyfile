@@ -54,21 +54,6 @@
 		reverse_proxy homepage:3000
 	}
 
-	@hermes host hermes.{$DOMAIN}
-	handle @hermes {
-		reverse_proxy hermes:9119
-	}
-
-	@workspace host workspace.{$DOMAIN}
-	handle @workspace {
-		reverse_proxy hermes-workspace:3000
-	}
-
-	@cpa host cpa.{$DOMAIN}
-	handle @cpa {
-		reverse_proxy cli-proxy-api:8317
-	}
-
 	@9router host 9router.{$DOMAIN}
 	handle @9router {
 		reverse_proxy 9router:20128
@@ -77,11 +62,6 @@
 	@headroom host headroom.{$DOMAIN}
 	handle @headroom {
 		reverse_proxy headroom:8787
-	}
-
-	@cpamp host cpamp.{$DOMAIN}
-	handle @cpamp {
-		reverse_proxy cpa-manager-plus:18317
 	}
 
 	@mqtt host mqtt.{$DOMAIN}
