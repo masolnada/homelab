@@ -16,10 +16,7 @@ graph LR
             Caddy --> Radicale
             Caddy --> Silverbullet
             Caddy --> ImmichProxy[Immich Public Proxy]
-            Caddy --> Hermes
             Caddy -->|read-only UI| Zot[zot registry]
-            Caddy --> HermesWorkspace[Hermes Workspace]
-            HermesWorkspace --> Hermes
             ImmichProxy --> Immich[Immich]
             Homepage -->|TCP 2375| DockerProxy[Docker Socket Proxy]
             DockerProxy -.->|Docker socket| Caddy
@@ -28,12 +25,10 @@ graph LR
             DockerProxy -.->|Docker socket| Radicale
             DockerProxy -.->|Docker socket| Silverbullet
             DockerProxy -.->|Docker socket| Immich
-            DockerProxy -.->|Docker socket| Hermes
-            DockerProxy -.->|Docker socket| HermesWorkspace
             Vaultwarden -.- Backup[Backup Sidecar]
             Radicale -.- RadBackup[Backup Sidecar]
             Immich -.- ImmichBackup[Backup Sidecar]
-            Hermes -.- HermesBackup[Backup Sidecar]
+            HomeAgent[Home Agent] -.- AgentBackup[Backup Sidecar]
         end
     end
 
@@ -48,7 +43,7 @@ graph LR
     Backup -->|CIFS| backups
     RadBackup -->|CIFS| backups
     ImmichBackup -->|CIFS| backups
-    HermesBackup -->|CIFS| backups
+    AgentBackup -->|CIFS| backups
 
     Navidrome -->|CIFS read-only| media
     Immich -->|CIFS read-write| photos
@@ -59,10 +54,9 @@ graph LR
 - 🎬 **Media** — Navidrome (music streaming), Immich (photo management), immich-public-proxy (public album sharing at `share.<DOMAIN>`)
 - 📇 **Contacts** — Radicale CardDAV server for contacts sync with daily backup to TrueNAS
 - 📝 **Notes** — Silverbullet web-native markdown wiki + WebDAV sync endpoint. Both share the same NAS notes vault (plain `.md` files). WebDAV enables Obsidian desktop/mobile sync via the [Remotely Save](https://github.com/remotely-save/remotely-save) community plugin.
-- 🤖 **Hermes** — Personal AI agent (Nous Research Hermes Agent) migrated from local use, with Telegram bot + web dashboard at `hermes.<DOMAIN>`, daily backup to TrueNAS (no downtime). [Hermes Workspace](https://github.com/outsourc-e/hermes-workspace) at `workspace.<DOMAIN>` adds a full UI on top of the same agent (chat, file browser, terminal, skills/memory management) — it shares the `agent_data` volume and talks to the agent's gateway API (:8642, token-protected via `HERMES_API_KEY`) and dashboard API (:9119); workspace login uses `HERMES_WORKSPACE_PASSWORD`. Known limitation: the hermes dashboard's `basic_auth` (which hermes *requires* on non-loopback binds — there is no unauthenticated option) blocks the workspace from scraping a dashboard session token, so dashboard-token features (session kanban, context usage) run degraded; chat, files, skills, and memory work fully via the gateway API. Fixing this would require binding the dashboard to loopback and sharing hermes's network namespace, at the cost of the standalone `hermes.<DOMAIN>` UI.
 - **Home Agent** — Dedicated pi-based shutter bot built from `my-esphome/agent`. It selects `hot`, `mild`, or `cold` rules from Cardona's forecast daily maximum, schedules MQTT movements with durable fired-slot tracking, accepts `/shutter-band` overrides through its own Telegram bot, and validates/commits conversational rule edits back to `my-esphome`. It shares `proxy_net` with Mosquitto and 9Router, using `http://9router:20128/v1` for conversational AI; it has no public endpoint.
-- 🔀 **CPA** — [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI), one shared LLM proxy for all coding agents (pi, Claude, Codex), at `cpa.<DOMAIN>`. Its `/management.html` endpoint uses the [CPA Manager Plus](https://github.com/seakee/CPA-Manager-Plus) lightweight panel, while full Manager Server mode runs at `cpamp.<DOMAIN>` with persistent request history, usage and cost analytics, model pricing, inspection, and automation. Fronts OAuth providers (Antigravity Gemini, Claude) and OpenAI-compatible upstreams (OpenRouter → GLM, DeepSeek) behind a single API key, so agents point at one endpoint instead of juggling per-provider creds. CPAMP connects directly to CPA over `proxy_net`, stores its SQLite database and encryption key under `cpa/manager/`, and uses `CPA_MANAGER_ADMIN_KEY` for login. The retired cpa-usage-keeper data remains under `cpa/keeper/` for recovery but no longer consumes the CPA usage queue. Daily backup of `auths/`, CPAMP data, and the legacy keeper DB to TrueNAS. **OAuth logins are done off-box:** the panel/CLI callback binds a loopback redirect to the proxy's own port, which doesn't resolve against a headless host — so log in locally, then `scp` the resulting `auths/*.json` (each carries a `refresh_token`, so CPA auto-refreshes indefinitely with no further callbacks). Config lives in `config.yaml` (gitignored — holds the mgmt key, client API key, OpenRouter key, and DeepSeek key); recreate it from `config.example.yaml`. Also mirrored in the [agent-station](https://github.com/masolnada/agent-station) repo for local dev.
-- 🔁 **9Router** — [9router](https://github.com/decolua/9router), a second LLM router at `9router.<DOMAIN>`, deployed in the `cpa` stack next to CLIProxyAPI. OpenAI-compatible endpoint at `9router.<DOMAIN>/v1`, dashboard at `/dashboard`; providers, API keys, and quota tracking are configured in its own UI (login password from `NINEROUTER_INITIAL_PASSWORD`). Data (SQLite, certs, runtime config) lives in `cpa/9router/` and is included in the CPA daily backup. The [Headroom](https://github.com/chopratejas/headroom) sidecar provides the RTK token saver at `http://headroom:8787`, with its savings dashboard at `headroom.<DOMAIN>/dashboard` (root `/` answers 421 — it is an LLM proxy path, so link the dashboard directly) and durable stats in `cpa/headroom/proxy_savings.json`. 9Router is already pointed at it (`headroomUrl` + `headroomEnabled` in its SQLite settings, seeded from `HEADROOM_URL`); the Token Saver page reports `installed: false` because there is no local `headroom` CLI in the 9Router image — that is expected for a remote instance, `running: true` is what matters.
+- 🔀 **CPA stack** — Hosts the shared LLM routing services (9Router and Headroom). CLIProxyAPI, CPA Manager Plus, and the CPA backup sidecar were retired; `cpa/auths/`, `cpa/manager/`, and `cpa/keeper/` may still hold their old data on the VM.
+- 🔁 **9Router** — [9router](https://github.com/decolua/9router), a second LLM router at `9router.<DOMAIN>`, deployed in the `cpa` stack. OpenAI-compatible endpoint at `9router.<DOMAIN>/v1`, dashboard at `/dashboard`; providers, API keys, and quota tracking are configured in its own UI (login password from `NINEROUTER_INITIAL_PASSWORD`). Data (SQLite, certs, runtime config) lives in `cpa/9router/` and is included in the CPA daily backup. The [Headroom](https://github.com/chopratejas/headroom) sidecar provides the RTK token saver at `http://headroom:8787`, with its savings dashboard at `headroom.<DOMAIN>/dashboard` (root `/` answers 421 — it is an LLM proxy path, so link the dashboard directly) and durable stats in `cpa/headroom/proxy_savings.json`. 9Router is already pointed at it (`headroomUrl` + `headroomEnabled` in its SQLite settings, seeded from `HEADROOM_URL`); the Token Saver page reports `installed: false` because there is no local `headroom` CLI in the 9Router image — that is expected for a remote instance, `running: true` is what matters.
 - 🏡 **Automation** — Mosquitto MQTT broker + ESPHome dashboard, migrated from the retired gordi NixOS VM (July 2026). Mosquitto listens on 1883 (plain MQTT, published on the host) and 9001 (websockets, proxied as `mqtt.<DOMAIN>`). The homelab VM carries **10.0.20.20 as a secondary IP** (netplan overlay `/etc/netplan/60-mqtt-vip.yaml`) — the old gordi broker address that every ESPHome device has baked in, so nothing needed reflashing. ESPHome dashboard at `esphome.<DOMAIN>` uses ping (not mDNS) for device reachability. Node-RED and n8n from gordi were retired; a data backup lives at `pve:/root/gordi-migration-backup.tar.gz`. Two Zigbee2MQTT instances (`z2m-baixos` and `z2m-pis`) each drive an SLZB-06P7 network coordinator — "zb-coord-baixos" at `10.0.20.6:6638` and "zb-coord-pis" at `10.0.20.5:6638` (zstack over TCP — no USB passthrough). Frontends at `z2m-baixos.<DOMAIN>` / `z2m-pis.<DOMAIN>`, publishing raw JSON to `zigbee2mqtt-baixos/#` / `zigbee2mqtt-pis/#` on Mosquitto (Home Assistant discovery disabled). The networks use distinct radio channels (baixos on the default 11, pis pinned to 15) and distinct `Z2M_<NAME>_*` identity values. State (device DB, network config) lives in the `z2m_baixos_data` / `z2m_pis_data` volumes — no backup sidecar yet, so keep the `Z2M_*` network identity values safe. Sensor history is captured by **Telegraf → InfluxDB 2 → Grafana**: Telegraf subscribes to `zigbee2mqtt-baixos/+` and `zigbee2mqtt-pis/+` (single-level wildcard, so bridge and availability topics are skipped) and writes every device report to the `zigbee` bucket as measurement `zigbee`, tagged `base_topic` and `device`. It uses the classic JSON parser, which keeps numeric values and **drops strings and booleans silently** — deliberate, since it guarantees every field is a float and no device can cause a type conflict; capturing `action` / `contact` / `occupancy` later needs `json_string_fields` plus an enum processor in `automation/telegraf/telegraf.conf`. A **Shelly Pro 3EM** three-phase CT meter feeds the same pipeline over stock Shelly firmware (no ESPHome) — see [⚡ Energy Metering](#-energy-metering). **ring-mqtt** bridges a Ring intercom/doorbell to MQTT so bell/motion events can drive automations — see [Ring Intercom](#-ring-intercom-ring-mqtt) below for the one-time auth setup. It's internal to `proxy_net` with no Caddy route (no persistent web UI — auth is a one-off CLI step) and no backup sidecar; its `ring_data` volume holds `config.json` and the self-rotating refresh token. Grafana at `grafana.<DOMAIN>` provisions its InfluxDB datasource (Flux) and dashboards from git under `automation/grafana/` — dashboard JSON hard-codes the bucket name, so it must match `INFLUXDB_BUCKET`. InfluxDB and Telegraf are internal to `proxy_net` with no Caddy route. `INFLUXDB_*` and `GRAFANA_ADMIN_*` only take effect on first boot (empty `influxdb_data` / `grafana_data` volume); no backup sidecars.
 - 🫀 **Gatus** — config-as-code dead-man monitoring at `gatus.<DOMAIN>` over Tailscale. Its first external endpoint is the Milverds daily Brief: the agent pushes after both sent and silent runs, and Gatus alerts Telegram if 26 hours pass without a heartbeat. Configuration lives in `automation/gatus/config.yaml`; push and Telegram credentials live in `automation/.env`.
 - 🏋️ **No Limit Cardona monitor** — a small Telegram bot that watches the No Limit Cardona (Trainin) gym class schedule and notifies subscribed chats when classes change (new/removed/rescheduled/full/spot available). It polls the gym's public schedule endpoint every 10 minutes between 08:00 and midnight, replies to `/gym` (this week's classes) and `/gym_tracker_status`, and auto-subscribes any chat it is added to. Built from its own repo ([nolimit-cardona-monitor](https://github.com/masolnada/nolimit-cardona-monitor)) by `deploy.sh` and pulled from the local registry — see [📦 Registry & deployments](#-registry--deployments). Outbound-only (no Caddy route, no inbound ports); state and the subscriber list persist in the `nolimit_cardona_data` volume. Configured via `NOLIMIT_TELEGRAM_*` in `automation/.env`.
@@ -251,24 +245,20 @@ Edit each stack's `.env` file in `/opt/homelab/` with your credentials:
 | `NAS_BACKUP_SHARE` | SMB share name for backups |
 | `NAS_BACKUP_USER` | NAS user for backup share |
 | `NAS_BACKUP_PASSWORD` | NAS password for backup share |
-| `HERMES_API_KEY` | Token for the agent's gateway API (:8642) — shared between the `hermes` and `workspace` containers |
-| `HERMES_WORKSPACE_PASSWORD` | Login password for the Hermes Workspace UI at `workspace.<DOMAIN>` |
 | `COMPOSE_PROFILES` | Set to `home-agent` after all Home Agent credentials are configured; empty keeps the bot disabled |
-| `HOME_AGENT_TELEGRAM_BOT_TOKEN` | Dedicated Home Agent bot token; must not be shared with Hermes |
+| `HOME_AGENT_TELEGRAM_BOT_TOKEN` | Dedicated Home Agent bot token |
 | `HOME_AGENT_TELEGRAM_USER_ID` / `HOME_AGENT_TELEGRAM_CHAT_ID` | Marc's permitted private Telegram user and chat IDs |
 | `HOME_AGENT_NINEROUTER_API_KEY` / `HOME_AGENT_PI_MODEL_ID` | 9Router client key and pinned model (`cx/gpt-6.1-sol`, high reasoning) for conversational rule editing |
 | `HOME_AGENT_MQTT_USERNAME` / `HOME_AGENT_MQTT_PASSWORD` | Mosquitto credentials used to drive shutters |
 | `HOME_AGENT_GIT_DEPLOY_KEY_B64` | Base64 deploy key with write access to `my-esphome` |
 
-> **Note**: Hermes' provider keys, Telegram token, personality and session state still live inside `agent_data` at `/opt/data/.env` and `/opt/data/config.yaml`. Home Agent is independently configured through `agent/.env` and uses its own bot token.
+> **Note**: Home Agent is configured through `agent/.env` and uses its own bot token.
 
 **cpa/.env**
 
 | Variable | Description |
 |---|---|
 | `TIMEZONE` | Timezone (e.g. `Europe/Madrid`) |
-| `CPA_MANAGEMENT_KEY` | Plaintext of `config.yaml`'s `remote-management.secret-key` — CPAMP uses it to access CPA and collect usage events |
-| `CPA_MANAGER_ADMIN_KEY` | Login key for CPA Manager Plus full mode at `cpamp.<DOMAIN>` |
 | `NINEROUTER_JWT_SECRET` | Long random secret signing 9Router dashboard sessions |
 | `NINEROUTER_INITIAL_PASSWORD` | Initial 9Router dashboard login password (required for remote login) |
 | `NAS_IP` | TrueNAS IP address |
@@ -388,8 +378,8 @@ The `agent` stack also runs `milverds-agent-inbox` from the full pinned Milverds
 commit in `agent/docker-compose.yml`. The service receives authenticated raw email
 from the Cloudflare Worker at `https://ingest-agents.milverds.com`, writes
 proposals to the persistent `agent_inbox_spool` volume, and has no repository
-mount or Git credentials. The same volume is mounted into Hermes at
-`/opt/data/agent-inbox` so the `purchase-email` skill can consume proposals.
+mount or Git credentials. Proposals remain in the spool; no consumer is
+currently configured.
 Set `AGENT_INBOX_INGEST_TOKEN` in the gitignored `agent/.env`; use the same
 secret for the Worker.
 
@@ -402,9 +392,8 @@ It uses its **own** tunnel and its **own** network, not the shared gateway
 ones. `cloudflared-milverds` and `agent-inbox` sit alone on `milverds_net`, so
 the tunnel token can publish only to `agent-inbox`, and `agent-inbox` — which
 parses untrusted email and PDF attachments — has no route to Vaultwarden, the
-Docker socket proxy, Postgres, InfluxDB or MQTT. Hermes still reaches the spool
-through the shared `agent_inbox_spool` volume, not over the network, so nothing
-is lost by keeping it off `proxy_net`.
+Docker socket proxy, Postgres, InfluxDB or MQTT. Any future consumer should
+read the shared `agent_inbox_spool` volume rather than joining this network.
 
 Set `MILVERDS_TUNNEL_TOKEN` in `agent/.env`. In that tunnel → Published
 applications, add subdomain `ingest-agents`, domain `milverds.com`, service
@@ -563,12 +552,12 @@ Each line is a minute apart. A working channel's `*_total_act_energy` climbs by 
 
 ## 🔄 Backups
 
-Vaultwarden, Radicale, Immich, and Hermes are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
+Vaultwarden, Radicale, Immich, and Home Agent are backed up daily at 03:00 AM to the TrueNAS SMB share. Each backup sidecar:
 
 - Retains 30 days of backups with automatic rotation
 - Stores backups as `<service>-<timestamp>.tar.gz`
 
-Vaultwarden, Radicale, and Immich stop their application container during backup to guarantee a consistent snapshot. **Hermes is the exception** — it stays running during backup (a live copy of `/opt/data`), a deliberate tradeoff to avoid interrupting the agent; there's a small residual risk of catching a file mid-write. The Hermes backup archive also includes the `workspace_files` volume (the Workspace UI's `/workspace` working directory).
+Vaultwarden, Radicale, and Immich stop their application container during backup to guarantee a consistent snapshot. Home Agent stays running while `agent-backup` copies its pi configuration, sessions, and state volumes; there is a residual risk of catching a file mid-write. Its repository volume is not backed up because it can be cloned again.
 
 **Immich backup strategy:**
 - The **postgres database** (metadata, albums, faces) is backed up daily via the backup sidecar to `backups/immich/` on the NAS

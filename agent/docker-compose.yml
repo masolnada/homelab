@@ -1,32 +1,4 @@
 services:
-  hermes:
-    image: nousresearch/hermes-agent:latest
-    container_name: hermes
-    restart: unless-stopped
-    command: gateway run
-    environment:
-      - TZ=${TIMEZONE}
-      - HERMES_DASHBOARD=1
-      - API_SERVER_ENABLED=true
-      - API_SERVER_HOST=0.0.0.0
-      - API_SERVER_KEY=${HERMES_API_KEY}
-    volumes:
-      - agent_data:/opt/data
-      - agent_inbox_spool:/opt/data/agent-inbox
-    networks:
-      - proxy_net
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8642/health && curl -fsS http://localhost:9119/api/status || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: "1.0"
-
   home-agent:
     profiles: [home-agent]
     image: localhost:5000/home-agent:7122b9534b1190f7102f6e9b094a2754e3d92227
@@ -87,7 +59,6 @@ services:
   # Own tunnel and own network. The token can publish only to agent-inbox, and
   # agent-inbox — which parses untrusted email and PDFs — cannot reach
   # Vaultwarden, the Docker socket proxy or any other proxy_net service.
-  # Hermes reaches the spool through the shared volume, not over the network.
   cloudflared-milverds:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared-milverds
@@ -96,38 +67,9 @@ services:
     networks:
       - milverds_net
 
-  workspace:
-    image: ghcr.io/outsourc-e/hermes-workspace:latest
-    container_name: hermes-workspace
-    restart: unless-stopped
-    depends_on:
-      hermes:
-        condition: service_healthy
-    environment:
-      - TZ=${TIMEZONE}
-      - HERMES_HOME=/home/workspace/.hermes
-      - HERMES_WORKSPACE_DIR=/workspace
-      - HERMES_API_URL=http://hermes:8642
-      - HERMES_DASHBOARD_URL=http://hermes:9119
-      - HERMES_API_TOKEN=${HERMES_API_KEY}
-      - HERMES_PASSWORD=${HERMES_WORKSPACE_PASSWORD}
-      - COOKIE_SECURE=1
-      - TRUST_PROXY=1
-    volumes:
-      - agent_data:/home/workspace/.hermes
-      - workspace_files:/workspace
-      - agent_inbox_spool:/home/workspace/agent-inbox
-    networks:
-      - proxy_net
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: "1.0"
-
   backup:
     image: offen/docker-volume-backup:latest@sha256:26df48fdb7bd32f114fc7420beae3960055ae1f40ba5ff3bfd787cb5f15fefa5
-    container_name: hermes-backup
+    container_name: agent-backup
     restart: unless-stopped
     environment:
       - BACKUP_CRON_EXPRESSION=0 3 * * *
@@ -136,8 +78,6 @@ services:
       - BACKUP_ARCHIVE=/archive/agent
       - TZ=${TIMEZONE}
     volumes:
-      - agent_data:/backup/agent_data:ro
-      - workspace_files:/backup/workspace_files:ro
       - home_agent_pi:/backup/home_agent_pi:ro
       - home_agent_sessions:/backup/home_agent_sessions:ro
       - home_agent_state:/backup/home_agent_state:ro
@@ -148,10 +88,8 @@ services:
       - proxy_net
 
 volumes:
-  agent_data:
   agent_inbox_spool:
     name: agent_inbox_spool
-  workspace_files:
   home_agent_repo:
   home_agent_pi:
   home_agent_sessions:

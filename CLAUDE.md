@@ -27,7 +27,7 @@ The independent Docker Compose stacks share a single `proxy_net` bridge network:
 
 - **gateway/** — Tailscale sidecar + Caddy (custom build with Cloudflare DNS plugin). Caddy uses `network_mode: service:tailscale` to share its network namespace. TLS via DNS-01 challenge with Cloudflare.
 - **security/** — Vaultwarden + backup sidecar (daily CIFS backup to TrueNAS, pauses container during backup)
-- **cpa/** — CLIProxyAPI (shared LLM proxy at `cpa.<DOMAIN>`) + cpa-usage-keeper (usage dashboard at `usage.<DOMAIN>`) + backup sidecar. OAuth logins are done off-box and tokens `scp`-ed into `cpa/auths/`; `config.yaml` (gitignored) holds provider keys. Mirrored in the `agent-station` repo.
+- **cpa/** — 9Router (LLM router at `9router.<DOMAIN>`) + Headroom token saver. CLIProxyAPI and CPA Manager Plus were retired.
 - **media/** — Jellyfin (video streaming) and Navidrome (music streaming). Both mount the NAS media share read-only.
 - **downloads/** — qBittorrent. Mounts full NAS media share.
 - **dashboard/** — Homepage + Docker socket proxy (Tecnativa). Homepage connects to the proxy over TCP:2375, never touches the Docker socket directly.
