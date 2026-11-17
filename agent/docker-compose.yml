@@ -1,7 +1,7 @@
 services:
   home-agent:
     profiles: [home-agent]
-    image: localhost:5000/home-agent:7122b9534b1190f7102f6e9b094a2754e3d92227
+    image: localhost:5000/home-agent:26b039e4591a48a6fd7d0202c0fbbc420a203545
     container_name: home-agent
     restart: unless-stopped
     environment:
